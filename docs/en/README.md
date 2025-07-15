@@ -2,18 +2,18 @@
 # weixin-java-miniapp-demo
 
 ## Overview  
-This project is a comprehensive backend system for WeChat Mini Programs, positioned as a "multi-tenant gateway hub," similar to an enterprise-level API Gateway. It primarily addresses three core challenges in the Mini Program ecosystem: multi-account configuration isolation, message protocol conversion, and unified error handling, implemented via a microservices architecture using Spring Boot. Centered around WxMaProperties for configuration, the system integrates with the WeChat SDK for protocol compatibility. Key features include dynamic route mapping (similar to Nginx's Location matching), multi-level error interception chains (inspired by Spring MVC's HandlerInterceptor), and tenant isolation strategies (e.g., database schema separation).  
+This project is a standardized backend solution for the WeChat Mini Program ecosystem, positioned as a "Mini Program Business Logic Middle Platform." It primarily addresses three high-frequency requirements in mobile development ecosystems: media resource hosting, user authentication, and message routing, akin to a "business capability container" for the Mini Program domain. Built on a Spring MVC monolithic architecture, it supports parallel servicing of multiple Mini Program instances through a multi-tenant design, with core functionalities encapsulated as plug-and-play RESTful interfaces.  
 
-The technical implementation adopts a layered design: the infrastructure layer leverages Lombok to simplify POJOs, the business layer employs MsgRouter to handle five types of message processors (text/image/event, etc.), and the presentation layer uses ErrorController to uniformly render error pages. Notable examples include dynamically updating AppID keystores via Zookeeper or caching message routing rules with Redis, showcasing deep integration with configuration centers and caching.  
+Technically, it integrates WeChat's native protocols with the Java ecosystem, such as using the WxMaProperties class for configuration-driven implementation and relying on the WeChat SDK for encrypted session handling. The architecture exhibits a "pipeline-filter" pattern, exemplified by the message processing chain of validation → execution → cleanup. Core resources include a media ID repository (similar to a CDN index), a session key manager, and a message routing bus. For instance, the media_id returned by the upload interface is essentially a reference credential for WeChat's CDN.  
 
 ## What is weixin-java-miniapp-demo?  
-This system is a multi-account management solution for WeChat Mini Programs, akin to a bank's branch-counter system. Core modules include a configuration management center (analogous to K8s ConfigMap), a message routing engine (similar to MQ's Topic exchange), and an error handling factory (inspired by Struts2's global exception interception). The technical foundation relies on WeChat's open protocols, binding multiple sets of AppID/Secret via Spring's @ConfigurationProperties. MsgRouter adopts the chain-of-responsibility pattern to match message types, while the ErrorPage registry dynamically maps HTTP status codes to template pages.  
+This is an enhanced implementation of WeChat's official SDK, modularizing Mini Program backend capabilities into three major components: media management, session services, and message routing. These components collaborate through the Spring IOC container—for example, the sessionKey obtained after user login is automatically injected into the message processor. The technical principle involves secondary encapsulation of WeChat's open protocols, such as simplifying the OAuth2.0 flow into a single code-to-ticket operation, akin to a token converter for bank quick logins.  
 
-Typical use cases cover the entire e-commerce Mini Program lifecycle: user scan-to-login (AES decryption of OpenID) → order-triggered subscription messages (routed to marketing modules via Router) → payment failure redirects to custom 404 pages. Implementation examples include using ConcurrentHashMap for multi-tenant configuration isolation, leveraging WeChat MediaAPI for image CDN uploads, and JWT-based session maintenance. Together, these features form a "configuration-routing-fault tolerance" triad for Mini Program backends.
+Typical use cases include e-commerce Mini Programs (managing product galleries via media files), social applications (maintaining user states through sessions), and smart customer service (distributing consultation requests via message routing). Module interactions form a star topology, with the configuration center WxMaProperties acting as the central hub—for instance, isolating configurations for different appids in multi-tenant scenarios, much like independent access control systems for hotel rooms. In practice, dynamic routing tables are maintained via Zookeeper, while the error handling module functions like a traffic cop, redirecting exceptions to designated pages.
 
 ## Quick Navigation
 
-### 👨‍💻 Developers
+### 💻 Developers
 
 - [Development Guide](summary/dev_guide.md) - Quickly get started with project development
 
@@ -21,12 +21,12 @@ Typical use cases cover the entire e-commerce Mini Program lifecycle: user scan-
 - [Module Description](docs/_module.md) - Detailed explanation of project modules
 
 
-### 👨‍💻 Architect
+### 🏗️ Architect
 
 - [System Architecture](summary/system_architecture.md) - System Architecture
 
 
-### 📄 API Documentation
+### ↔️ API Documentation
 
-- [API Documentation](summary/api.md) - API Documentation
+- <a href='https://code2docs.ai/wiki/binary/weixin-java-miniapp-demo/acb95743d3a86fe1e043ca6537768e9719883ee0/api-viewer.html' target='_blank'>API Documentation</a> - API Documentation
 

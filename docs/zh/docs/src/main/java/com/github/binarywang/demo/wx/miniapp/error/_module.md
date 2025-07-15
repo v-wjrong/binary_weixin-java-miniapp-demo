@@ -4,17 +4,17 @@
 |------|------|
 | 名称 | error |
 | 编码语言 | .java |
-| 代码路径 | weixin-java-miniapp-demo\src\main\java\com\github\binarywang\demo\wx\miniapp\error |
+| 代码路径 | weixin-java-miniapp-demo/src/main/java/com/github/binarywang/demo/wx/miniapp/error |
 | 包名 | docs.src.main.java.com.github.binarywang.demo.wx.miniapp.error |
-| 概述说明 | Spring MVC控制器处理404/500错误，返回统一视图。配置类注册错误页面映射404到/error/404，500到/error/500。 |
+| 概述说明 | Spring MVC错误处理控制器，映射/error路径，包含404和500错误处理方法。配置类实现ErrorPageRegistrar接口，注册404和500错误页面路径。 |
 
 # 说明
 
 ## 概述  
-该模块核心职责是统一处理Web应用的HTTP错误响应，包含错误页面路由和配置管理。接口规范遵循Spring MVC标准，通过@Controller和@RequestMapping注解定义错误路径映射，例如/error/404和/error/500。关键数据结构包括ErrorPageRegistry和ErrorPage，用于注册状态码与路径的映射关系。外部依赖仅Spring Web框架。例如ErrorController返回统一视图模板，ErrorPageConfiguration实现错误路径跳转逻辑。
+该模块核心职责是统一处理HTTP错误页面响应，包含错误请求路由和错误页面注册配置。接口规范遵循Spring MVC标准，通过@Controller和@RequestMapping实现路径映射，ErrorPageRegistrar接口实现错误状态码与路径的绑定。关键数据结构包括ErrorPage对象和ErrorPageRegistry注册器。外部依赖仅Spring Web框架。例如ErrorController处理/error/404请求，ErrorPageConfiguration注册404状态码跳转路径。
 
 ## 主要业务场景  
-模块主要处理两类业务场景：用户访问不存在的资源触发404错误，或服务器异常触发500错误。交互模式类似网关路由，将状态码自动重定向到预设路径。功能完整性体现在从错误捕获到页面渲染的全流程处理。典型应用模式为Spring Boot错误处理机制扩展，例如通过ErrorPageRegistrar动态配置错误页。API类型均为服务端路由，集成案例包含404/500错误的标准处理流程。
+模块通过协同工作的两个组件完成错误处理：控制器接收具体错误请求，配置类建立状态码与路径的映射关系。交互模式类似路由中转站，错误状态码自动导向预设路径。典型应用包括用户访问不存在资源触发404跳转，或服务异常时返回500错误页。例如访问无效URL时，系统自动通过/error/404返回统一错误视图。
 
 
 ### 包内部结构视图
@@ -25,13 +25,13 @@ graph TD
     error --> ErrorPageConfiguration.java
 ```
 
-该流程图展示了微信小程序demo项目中错误处理模块的层级结构。根节点为error目录，包含两个子节点：ErrorController.java和ErrorPageConfiguration.java，分别对应错误控制器和错误页面配置类。整个结构简洁明了，反映了错误处理模块的核心文件组织方式，符合典型Spring Boot项目的控制器与配置类分离的设计模式。
+该流程图展示了微信小程序demo项目中错误处理模块的层级结构。根节点为error目录，包含两个子节点：ErrorController.java和ErrorPageConfiguration.java，分别对应错误控制器和错误页面配置类。整个结构简洁明了，体现了错误处理模块的核心文件组织方式。
 
 # 文件列表
 
 | 名称   | 类型  | 说明 |
 |-------|------|-------------|
-| [ErrorController.java](ErrorController.md) | file | ErrorController处理404和500错误，返回统一错误页面。 |
-| [ErrorPageConfiguration.java](ErrorPageConfiguration.md) | file | ErrorPageConfiguration类注册404和500错误页，分别映射到/error/404和/error/500路径。 |
+| [ErrorController.java](ErrorController.md) | file | 错误控制器类，处理404和500错误，返回错误页面。 |
+| [ErrorPageConfiguration.java](ErrorPageConfiguration.md) | file | 错误页配置类，注册404和500错误对应的处理路径。 |
 
 

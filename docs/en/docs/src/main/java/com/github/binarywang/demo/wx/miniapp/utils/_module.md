@@ -4,13 +4,13 @@
 |------|------|
 | Name | utils |
 | Language | .java |
-| Code Path | weixin-java-miniapp-demo\src\main\java\com\github\binarywang\demo\wx\miniapp\utils |
+| Code Path | weixin-java-miniapp-demo/src/main/java/com/github/binarywang/demo/wx/miniapp/utils |
 | Package Name | docs.src.main.java.com.github.binarywang.demo.wx.miniapp.utils |
-| Brief Description | The JsonUtils class provides a static method `toJson`, which uses ObjectMapper to convert an object into a JSON string, automatically ignoring null values and formatting the output. Returns null in case of an exception. |
+| Brief Description | The JsonUtils class provides static JSON serialization methods, using ObjectMapper to configure non-null field output and formatting, returning null on exceptions. |
 
 # Description
 
-JsonUtils is a utility class designed for handling JSON serialization operations. It utilizes ObjectMapper as its core component and configures two key options in the static initialization block: ignoring null fields and enabling indented formatted output. The class provides a static method `toJson`, which accepts any object as a parameter and converts it into a formatted JSON string. If a JsonProcessingException occurs during the conversion process, the exception stack trace is printed, and null is returned. The entire class is designed to be a concise and practical JSON serialization tool.
+JsonUtils is a utility class designed for handling JSON serialization operations. It employs a static ObjectMapper instance for JSON processing and configures serialization behavior in a static initialization block: ignoring null fields and enabling indented output formatting. The class provides a toJson method that converts any object into a formatted JSON string. If a JsonProcessingException occurs during conversion, it prints the stack trace and returns null. The entire class is concisely designed, focusing solely on JSON serialization functionality.
 
 
 ### Package Internal Structure View
@@ -20,12 +20,12 @@ graph TD
     utils --> JsonUtils.java
 ```
 
-This flowchart illustrates the structural relationship within the utils directory of the WeChat Mini Program demo project. The top-level node is the utils directory, which contains only one subordinate file: the JsonUtils.java utility class for handling JSON-related operations. This simple single-layer structure indicates a functionally focused utility module dedicated to providing JSON data processing capabilities.
+This flowchart illustrates the hierarchical relationship of utility classes in the WeChat Mini Program demo project. The top-level node is the utils directory, which contains a utility class file JsonUtils.java. This is a typical single-file utility class structure designed for handling JSON-related operations. The entire structure is concise and clear, adhering to the design pattern of utility class modules.
 
 # File List
 
 | Name   | Type  | Description |
 |-------|------|-------------|
-| [JsonUtils.java](JsonUtils.md) | file | The JsonUtils class provides a static method `toJson`, which uses ObjectMapper to convert an object into a JSON string, automatically ignoring null values and formatting the output. Returns null in case of exceptions. |
+| [JsonUtils.java](JsonUtils.md) | file | The JsonUtils class provides static JSON serialization methods, using ObjectMapper to configure non-null field output and formatting, returning null in case of exceptions. |
 
 

@@ -4,14 +4,14 @@
 |------|------|
 | 名称 | ErrorPageConfiguration |
 | 编码语言 | .java |
-| 代码路径 | weixin-java-miniapp-demo\src\main\java\com\github\binarywang\demo\wx\miniapp\error\ErrorPageConfiguration.java |
+| 代码路径 | weixin-java-miniapp-demo/src/main/java/com/github/binarywang/demo/wx/miniapp/error/ErrorPageConfiguration.java |
 | 包名 | com.github.binarywang.demo.wx.miniapp.error |
 | 依赖项 | ['org.springframework.boot.web.server.ErrorPage', 'org.springframework.boot.web.server.ErrorPageRegistrar', 'org.springframework.boot.web.server.ErrorPageRegistry', 'org.springframework.http.HttpStatus', 'org.springframework.stereotype.Component'] |
-| 概述说明 | ErrorPageConfiguration类注册404和500错误页，分别映射到/error/404和/error/500路径。 |
+| 概述说明 | 错误页配置类，注册404和500错误对应的处理路径。 |
 
 # 说明
 
-这是一个Spring组件类，用于配置自定义错误页面。该类实现了ErrorPageRegistrar接口，通过重写registerErrorPages方法注册了两个错误页面：当出现404状态码时跳转到/error/404路径，出现500状态码时跳转到/error/500路径。该配置通过ErrorPageRegistry对象添加错误页面映射关系。
+该内容定义了一个名为ErrorPageConfiguration的Spring组件类，实现了ErrorPageRegistrar接口。该类重写了registerErrorPages方法，通过ErrorPageRegistry注册了两个错误页面映射：将HTTP 404状态码映射到/error/404路径，将HTTP 500状态码映射到/error/500路径。这用于配置应用程序的错误页面处理机制。
 
 # 类列表 Class Summary
 
@@ -39,6 +39,7 @@ classDiagram
         +registerErrorPages(ErrorPageRegistry errorPageRegistry) void
     }
     <<interface>> ErrorPageRegistrar {
+        <<Interface>>
         +registerErrorPages(ErrorPageRegistry errorPageRegistry) void
     }
     class ErrorPageRegistry {
@@ -51,16 +52,16 @@ classDiagram
         <<enumeration>>
         NOT_FOUND
         INTERNAL_SERVER_ERROR
-        // ...其他状态码
+        //其他状态码...
     }
 
-    ErrorPageConfiguration --> ErrorPageRegistrar : 实现
+    ErrorPageConfiguration --|> ErrorPageRegistrar : 实现
     ErrorPageConfiguration --> ErrorPageRegistry : 依赖
     ErrorPageConfiguration --> ErrorPage : 创建
     ErrorPage --> HttpStatus : 使用
 ```
 
-这段代码定义了一个Spring组件`ErrorPageConfiguration`，实现了`ErrorPageRegistrar`接口，用于注册自定义错误页面。当应用出现404或500错误时，会重定向到对应的错误处理路径。类图展示了该组件与相关接口和类的依赖关系，包括错误页面注册表、错误页面实体以及HTTP状态枚举。
+这段代码定义了一个Spring组件`ErrorPageConfiguration`，用于注册自定义错误页面。它实现了`ErrorPageRegistrar`接口，通过`registerErrorPages`方法向`ErrorPageRegistry`注册了两个错误页面：404状态码对应"/error/404"路径，500状态码对应"/error/500"路径。类图展示了组件与接口的继承关系，以及与其他类（如`ErrorPage`和`HttpStatus`枚举）的依赖关系，体现了Spring Boot错误处理机制的典型实现方式。
 
 
 ### 内部方法调用关系图
@@ -68,20 +69,22 @@ classDiagram
 ```mermaid
 graph TD
     A["类ErrorPageConfiguration"]
-    B["实现接口: ErrorPageRegistrar"]
-    C["重写方法: registerErrorPages(ErrorPageRegistry)"]
-    D["调用: errorPageRegistry.addErrorPages()"]
-    E["创建: ErrorPage(HttpStatus.NOT_FOUND, '/error/404')"]
-    F["创建: ErrorPage(HttpStatus.INTERNAL_SERVER_ERROR, '/error/500')"]
+    B["注解: @Component"]
+    C["接口实现: ErrorPageRegistrar"]
+    D["重写方法: registerErrorPages(ErrorPageRegistry)"]
+    E["调用方法: errorPageRegistry.addErrorPages()"]
+    F["创建ErrorPage: HttpStatus.NOT_FOUND → '/error/404'"]
+    G["创建ErrorPage: HttpStatus.INTERNAL_SERVER_ERROR → '/error/500'"]
 
     A --> B
-    B --> C
+    A --> C
     C --> D
     D --> E
-    D --> F
+    E --> F
+    E --> G
 ```
 
-该流程图展示了Spring Boot错误页面配置类的核心逻辑。ErrorPageConfiguration类通过实现ErrorPageRegistrar接口，重写registerErrorPages方法，向容器注册两个标准错误页面：404未找到错误映射到"/error/404"路径，500服务器内部错误映射到"/error/500"路径。这种配置方式在Web应用发生对应HTTP状态码错误时，会自动重定向到预设的错误处理路径。
+这段代码流程图展示了Spring Boot错误页面配置的实现过程。ErrorPageConfiguration类通过@Component注解成为Spring组件，并实现了ErrorPageRegistrar接口。核心逻辑在registerErrorPages方法中，该方法通过ErrorPageRegistry注册了两个错误页面：404状态码映射到"/error/404"路径，500状态码映射到"/error/500"路径。整个流程体现了Spring Boot的异常处理机制，通过集中配置将特定HTTP状态码重定向到自定义错误页面。
 
 ### 字段列表 Field List
 
@@ -92,7 +95,7 @@ graph TD
 
 | 名称  | 类型  | 说明 |
 |-------|-------|------|
-| registerErrorPages | void | 注册错误页面，404错误跳转至/error/404，500错误跳转至/error/500。 |
+| registerErrorPages | void | 注册错误页面：404跳转/error/404，500跳转/error/500。 |
 
 
 

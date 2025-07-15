@@ -4,20 +4,20 @@
 |------|------|
 | 名称 | WxMaMediaController |
 | 编码语言 | .java |
-| 代码路径 | weixin-java-miniapp-demo\src\main\java\com\github\binarywang\demo\wx\miniapp\controller\WxMaMediaController.java |
+| 代码路径 | weixin-java-miniapp-demo/src/main/java/com/github/binarywang/demo/wx/miniapp/controller/WxMaMediaController.java |
 | 包名 | com.github.binarywang.demo.wx.miniapp.controller |
 | 依赖项 | ['cn.binarywang.wx.miniapp.api.WxMaService', 'cn.binarywang.wx.miniapp.constant.WxMaConstants', 'cn.binarywang.wx.miniapp.util.WxMaConfigHolder', 'com.google.common.collect.Lists', 'com.google.common.io.Files', 'lombok.AllArgsConstructor', 'lombok.extern.slf4j.Slf4j', 'me.chanjar.weixin.common.bean.result.WxMediaUploadResult', 'me.chanjar.weixin.common.error.WxErrorException', 'org.springframework.web.bind.annotation', 'org.springframework.web.multipart.MultipartFile', 'org.springframework.web.multipart.MultipartHttpServletRequest', 'org.springframework.web.multipart.commons.CommonsMultipartResolver', 'javax.servlet.http.HttpServletRequest', 'java.io.File', 'java.io.IOException', 'java.util.Iterator', 'java.util.List'] |
-| 概述说明 | 微信小程序媒体控制器，提供上传和下载临时素材功能。上传返回media_id列表，下载返回文件。检查appid有效性，清理ThreadLocal。 |
+| 概述说明 | 微信小程序媒体控制器，提供上传和下载临时素材功能。上传返回media_id列表，下载返回媒体文件。需校验appid有效性，操作后清理ThreadLocal。 |
 
 # 说明
 
-这是一个微信小程序媒体文件管理控制器类，包含上传和下载临时素材功能。上传接口接收多文件上传，验证appid有效性后保存临时文件并返回media_id列表。下载接口根据mediaId获取媒体文件。两个操作都包含ThreadLocal清理逻辑，确保线程安全。上传过程记录文件路径和media_id，异常时记录错误日志。
+这是一个微信小程序媒体文件管理的控制器类，包含上传和下载临时素材功能。上传接口接收appid和HTTP请求，验证配置后处理多文件上传，返回media_id列表。下载接口根据appid和mediaId获取媒体文件。两个操作都包含ThreadLocal清理逻辑，上传过程会记录文件路径和media_id，异常时记录错误日志。
 
 # 类列表 Class Summary
 
 | 名称   | 类型  | 说明 |
 |-------|------|-------------|
-| WxMaMediaController | class | 微信小程序媒体控制器，提供上传和下载临时素材功能。上传需验证appid，支持多文件处理，返回media_id。下载需验证appid和media_id，返回媒体文件。操作后清理ThreadLocal。 |
+| WxMaMediaController | class | 微信小程序素材控制器，提供上传和下载临时素材功能，包括验证appid、处理文件上传及返回media_id或文件。 |
 
 
 
@@ -28,7 +28,7 @@
 | 访问范围 | @RestController;@AllArgsConstructor;@Slf4j;@RequestMapping("/wx/media/{appid}");public |
 | 类型 | class |
 | 名称 | WxMaMediaController |
-| 说明 | 微信小程序媒体控制器，提供上传和下载临时素材功能。上传需验证appid，支持多文件处理，返回media_id。下载需验证appid和media_id，返回媒体文件。操作后清理ThreadLocal。 |
+| 说明 | 微信小程序素材控制器，提供上传和下载临时素材功能，包括验证appid、处理文件上传及返回media_id或文件。 |
 
 
 ### UML类图
@@ -54,26 +54,26 @@ classDiagram
     }
 
     class WxMediaUploadResult {
-        -String mediaId
-        +String getMediaId()
+        +String mediaId
+        +getMediaId() String
+    }
+
+    class WxMaConfigHolder {
+        +remove() void
     }
 
     class CommonsMultipartResolver {
         +isMultipart(HttpServletRequest request) boolean
     }
 
-    class WxMaConfigHolder {
-        +remove()
-    }
-
     WxMaMediaController --> WxMaService : 依赖
+    WxMaMediaController --> CommonsMultipartResolver : 依赖
+    WxMaMediaController --> WxMaConfigHolder : 依赖
     WxMaService --> WxMaMediaService : 依赖
     WxMaMediaService --> WxMediaUploadResult : 返回
-    WxMaMediaController --> CommonsMultipartResolver : 使用
-    WxMaMediaController --> WxMaConfigHolder : 清理ThreadLocal
 ```
 
-这段代码描述了一个微信小程序媒体文件控制器，主要提供上传和下载临时素材的功能。类图中包含控制器WxMaMediaController与微信服务接口WxMaService的交互，后者进一步依赖媒体服务接口WxMaMediaService来处理具体操作。控制器还使用了CommonsMultipartResolver解析多部分请求，并通过WxMaConfigHolder管理线程本地变量。上传功能返回包含mediaId的结果对象，整体设计遵循分层架构和依赖倒置原则。
+该代码实现了一个微信小程序媒体文件上传下载的REST控制器。核心类WxMaMediaController通过WxMaService接口操作媒体服务，依赖CommonsMultipartResolver处理文件上传，使用WxMaConfigHolder管理线程局部变量。上传方法将临时文件转为微信媒体ID，下载方法根据媒体ID获取文件。类图展示了控制器与服务层之间的调用关系，以及关键的数据传输对象WxMediaUploadResult。
 
 
 ### 内部方法调用关系图
@@ -81,16 +81,15 @@ classDiagram
 ```mermaid
 graph TD
     A["WxMaMediaController"]
-    B["构造方法: 注入wxMaService"]
-    C["POST /upload"]
-    D["GET /download/{mediaId}"]
+    B["构造器注入: WxMaService wxMaService"]
+    C["上传接口: uploadMedia"]
+    D["下载接口: getMedia"]
     E["检查appid有效性: wxMaService.switchover"]
-    F["创建临时目录: Files.createTempDir"]
-    G["文件转存: file.transferTo"]
-    H["上传素材: wxMaService.getMediaService().uploadMedia"]
+    F["创建临时文件: Files.createTempDir"]
+    G["上传文件: wxMaService.getMediaService().uploadMedia"]
+    H["下载文件: wxMaService.getMediaService().getMedia"]
     I["清理ThreadLocal: WxMaConfigHolder.remove"]
-    J["下载素材: wxMaService.getMediaService().getMedia"]
-    K["异常处理: log.error"]
+    J["异常处理: catch IOException"]
 
     A --> B
     A --> C
@@ -98,11 +97,10 @@ graph TD
     C --> E
     C --> F
     C --> G
-    C --> H
     C --> I
-    C --> K
+    C --> J
     D --> E
-    D --> J
+    D --> H
     D --> I
 ```
 
@@ -110,8 +108,8 @@ graph TD
 sequenceDiagram
     participant Client
     participant Controller as WxMaMediaController
-    participant Service as wxMaService
-    participant MediaService as MediaService
+    participant Service as WxMaService
+    participant MediaService
     participant ConfigHolder as WxMaConfigHolder
 
     Client->>Controller: POST /wx/media/{appid}/upload
@@ -121,9 +119,9 @@ sequenceDiagram
         Controller-->>Client: 抛出IllegalArgumentException
     else 有效appid
         Controller->>Controller: 解析multipart请求
-        loop 每个上传文件
+        loop 遍历上传文件
             Controller->>Controller: 创建临时文件
-            Controller->>MediaService: uploadMedia(类型, 文件)
+            Controller->>MediaService: uploadMedia(type, file)
             MediaService-->>Controller: WxMediaUploadResult
             Controller->>ConfigHolder: remove()
         end
@@ -143,20 +141,20 @@ sequenceDiagram
     end
 ```
 
-该流程图展示了微信素材管理控制器的核心逻辑，包含文件上传和下载两个主要端点。上传流程涉及临时文件创建、多部分请求处理和媒体服务调用，下载流程则通过媒体ID获取文件。两个操作都包含appid有效性验证和ThreadLocal清理机制，异常处理通过日志记录实现。时序图详细描述了客户端与控制器、服务层之间的交互过程，特别强调了不同条件下的分支处理逻辑。
+该流程图展示了微信素材管理控制器的核心逻辑，包含上传和下载两个主要接口。上传流程涉及appid验证、多文件处理、临时文件创建和媒体服务调用；下载流程则包含权限校验和媒体文件获取。两个流程最后都会清理ThreadLocal存储的配置信息，确保线程安全。时序图详细描述了客户端与各组件间的交互顺序和异常处理路径。
 
 ### 字段列表 Field List
 
 | 名称  | 类型  | 说明 |
 |-------|-------|------|
-| wxMaService | WxMaService | 微信小程序服务实例的私有常量变量。 |
+| wxMaService | WxMaService | 微信小程序服务实例的私有不可变成员变量。 |
 
 ### 方法列表
 
 | 名称  | 类型  | 说明 |
 |-------|-------|------|
-| uploadMedia | List<String> | Java方法处理微信小程序文件上传，验证appid后解析多文件请求，逐个上传并返回media_id列表，最后清理ThreadLocal。 |
-| getMedia | File | Java方法：通过appid和mediaId下载媒体文件，检查appid配置后返回文件，最后清理ThreadLocal。异常时提示未找到配置。 |
+| uploadMedia | List<String> | 上传媒体文件接口，校验appid后处理多文件上传，返回媒体ID列表。异常时清理配置并记录日志。 |
+| getMedia | File | Java方法：通过appid和mediaId下载微信小程序媒体文件，验证配置后返回文件，最后清理ThreadLocal。 |
 
 
 

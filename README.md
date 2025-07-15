@@ -2,18 +2,18 @@
 # weixin-java-miniapp-demo
 
 ## 概述  
-该工程是微信小程序后端综合系统，定位为"多租户网关中枢"，类似企业级API Gateway。核心解决小程序生态中多账号配置隔离、消息协议转换和错误统一处理三大问题，通过Spring Boot实现微服务化架构。系统以WxMaProperties为配置核心，结合微信SDK实现协议对接，关键特征包括：动态路由映射（类似Nginx的Location匹配）、多级错误拦截链（仿Spring MVC的HandlerInterceptor）和租户隔离策略（如数据库Schema分离）。  
+该工程是微信小程序生态的标准化后端解决方案，定位为"小程序业务逻辑中台"。核心解决移动开发生态中媒体资源托管、用户身份验证和消息路由三大高频需求，类似小程序领域的"业务能力集装箱"。采用Spring MVC单体架构，通过多租户设计支持并行服务多个小程序实例，关键能力封装为即插即用的RESTful接口。  
 
-技术实现上采用分层设计：基础设施层依赖Lombok简化POJO，业务层通过MsgRouter实现五种消息处理器（文本/图片/事件等），表现层由ErrorController统一渲染错误页。典型如通过Zookeeper动态更新AppID密钥库，或使用Redis缓存消息路由规则，体现配置中心与缓存的深度集成。  
+技术实现上融合微信原生协议与Java生态，如通过WxMaProperties类实现配置驱动，依赖微信SDK处理加密会话。架构特征呈现"管道-过滤器"模式，典型如消息处理链的验证→执行→清理流程。核心资源包括媒体ID仓库（类似CDN索引）、会话密钥管理器和消息路由总线，例如上传接口返回的media_id实际是微信CDN的引用凭证。
 
 ## 什么是weixin-java-miniapp-demo?  
-该系统是微信小程序多账号管理解决方案，类似银行的分支行柜台系统。核心模块包括：配置管理中心（类比K8s ConfigMap）、消息路由引擎（类似MQ的Topic交换机）和错误处理工厂（仿Struts2的全局异常拦截）。技术原理基于微信开放协议，通过Spring的@ConfigurationProperties绑定多组AppID/Secret，MsgRouter采用责任链模式匹配消息类型，ErrorPage注册表实现HTTP状态码与模板页的动态映射。  
+这是微信官方SDK的增强实现，将小程序后端能力模块化为媒体管理、会话服务和消息路由三大组件。组件间通过Spring IOC容器协同工作，如用户登录后获得的sessionKey会自动注入消息处理器。技术原理基于微信开放协议二次封装，例如OAuth2.0流程简化为单次code换票操作，类似银行快捷登录的令牌转换器。  
 
-典型应用场景涵盖电商小程序全流程：用户扫码登录（AES解密OpenID）→下单时触发订阅消息（通过Router分发至营销模块）→支付失败跳转自定义404页。具体实现案例包括：使用ConcurrentHashMap维护多租户配置隔离，通过微信MediaAPI实现图片CDN上传，以及基于JWT的会话维护机制。这些功能共同构成小程序后端"配置-路由-容错"三位一体的解决方案。
+典型应用场景包括电商小程序（媒体文件管理商品图集）、社交应用（会话维持用户状态）、智能客服（消息路由分配咨询请求）。模块交互呈现星型拓扑，配置中心WxMaProperties作为核心枢纽，例如多租户场景下不同appid的配置隔离，如同酒店房间的独立门禁系统。具体实现上，通过Zookeeper维护动态路由表，错误处理模块则像交通警察引导异常流量到指定页面。
 
 ## 快速导航
 
-### 👨‍💻 开发者
+### 💻 开发者
 
 - [开发指南](docs/zh/summary/dev_guide.md) - 快速上手项目开发
 
@@ -21,12 +21,12 @@
 - [模块说明](docs/zh/docs/_module.md) - 项目模块详细说明
 
 
-### 👨‍💻 架构师
+### 🏗️ 架构师
 
 - [系统架构](docs/zh/summary/system_architecture.md) - 系统架构
 
 
-### 📄 API 文档
+### ↔️ API 文档
 
-- [API 文档](summary/api.md) - API 文档
+- <a href='https://code2docs.ai/wiki/binary/weixin-java-miniapp-demo/acb95743d3a86fe1e043ca6537768e9719883ee0/api-viewer.html' target='_blank'>API 文档</a> - API 文档
 

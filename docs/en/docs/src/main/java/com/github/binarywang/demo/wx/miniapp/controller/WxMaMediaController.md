@@ -4,20 +4,20 @@
 |------|------|
 | Name | WxMaMediaController |
 | Language | .java |
-| Code Path | weixin-java-miniapp-demo\src\main\java\com\github\binarywang\demo\wx\miniapp\controller\WxMaMediaController.java |
+| Code Path | weixin-java-miniapp-demo/src/main/java/com/github/binarywang/demo/wx/miniapp/controller/WxMaMediaController.java |
 | Package Name | com.github.binarywang.demo.wx.miniapp.controller |
 | Dependencies | ['cn.binarywang.wx.miniapp.api.WxMaService', 'cn.binarywang.wx.miniapp.constant.WxMaConstants', 'cn.binarywang.wx.miniapp.util.WxMaConfigHolder', 'com.google.common.collect.Lists', 'com.google.common.io.Files', 'lombok.AllArgsConstructor', 'lombok.extern.slf4j.Slf4j', 'me.chanjar.weixin.common.bean.result.WxMediaUploadResult', 'me.chanjar.weixin.common.error.WxErrorException', 'org.springframework.web.bind.annotation', 'org.springframework.web.multipart.MultipartFile', 'org.springframework.web.multipart.MultipartHttpServletRequest', 'org.springframework.web.multipart.commons.CommonsMultipartResolver', 'javax.servlet.http.HttpServletRequest', 'java.io.File', 'java.io.IOException', 'java.util.Iterator', 'java.util.List'] |
-| Brief Description | WeChat Mini Program Media Controller, providing functionality for uploading and downloading temporary materials. Uploading returns a list of media_ids, while downloading returns files. It checks the validity of the appid and cleans up ThreadLocal. |
+| Brief Description | WeChat Mini Program Media Controller, providing functions for uploading and downloading temporary materials. Uploading returns a list of media_ids, while downloading returns media files. Requires validation of appid effectiveness and cleanup of ThreadLocal after operations. |
 
 # Description
 
-This is a WeChat Mini Program media file management controller class, which includes functionalities for uploading and downloading temporary materials. The upload interface accepts multiple file uploads, verifies the validity of the appid, saves the temporary files, and returns a list of media_ids. The download interface retrieves media files based on the mediaId. Both operations include ThreadLocal cleanup logic to ensure thread safety. The upload process records file paths and media_ids, and logs error messages in case of exceptions.
+This is a controller class for media file management in a WeChat Mini Program, which includes functionalities for uploading and downloading temporary materials. The upload interface receives an appid and HTTP request, processes multi-file uploads after validating configurations, and returns a list of media_ids. The download interface retrieves media files based on the appid and mediaId. Both operations include ThreadLocal cleanup logic. The upload process records file paths and media_ids, and logs error messages in case of exceptions.
 
 # Class Summary
 
 | Name   | Type  | Description |
 |-------|------|-------------|
-| WxMaMediaController | class | WeChat Mini Program Media Controller, providing functionality for uploading and downloading temporary materials. Upload requires appid verification, supports multi-file processing, and returns media_id. Download requires verification of both appid and media_id, returning the media file. Clears ThreadLocal after operations. |
+| WxMaMediaController | class | WeChat Mini Program Material Controller, providing upload and download functions for temporary materials, including verifying appid, handling file uploads, and returning media_id or files. |
 
 
 
@@ -28,7 +28,7 @@ This is a WeChat Mini Program media file management controller class, which incl
 | Access Modifier | @RestController;@AllArgsConstructor;@Slf4j;@RequestMapping("/wx/media/{appid}");public |
 | Type | class |
 | Name | WxMaMediaController |
-| Description | WeChat Mini Program Media Controller, providing functionality for uploading and downloading temporary materials. Upload requires appid verification, supports multi-file processing, and returns media_id. Download requires verification of both appid and media_id, returning the media file. Clears ThreadLocal after operations. |
+| Description | WeChat Mini Program Material Controller, providing upload and download functions for temporary materials, including verifying appid, handling file uploads, and returning media_id or files. |
 
 
 ### UML Class Diagram
@@ -54,26 +54,26 @@ classDiagram
     }
 
     class WxMediaUploadResult {
-        -String mediaId
-        +String getMediaId()
+        +String mediaId
+        +getMediaId() String
+    }
+
+    class WxMaConfigHolder {
+        +remove() void
     }
 
     class CommonsMultipartResolver {
         +isMultipart(HttpServletRequest request) boolean
     }
 
-    class WxMaConfigHolder {
-        +remove()
-    }
-
     WxMaMediaController --> WxMaService : Dependency
+    WxMaMediaController --> CommonsMultipartResolver : Dependency
+    WxMaMediaController --> WxMaConfigHolder : Dependency
     WxMaService --> WxMaMediaService : Dependency
     WxMaMediaService --> WxMediaUploadResult : Returns
-    WxMaMediaController --> CommonsMultipartResolver : Uses
-    WxMaMediaController --> WxMaConfigHolder : Cleans ThreadLocal
 ```
 
-This code describes a WeChat Mini Program media file controller, primarily providing functionality for uploading and downloading temporary materials. The class diagram illustrates the interaction between the controller WxMaMediaController and the WeChat service interface WxMaService, which further relies on the media service interface WxMaMediaService to handle specific operations. The controller also utilizes CommonsMultipartResolver to parse multipart requests and manages thread-local variables via WxMaConfigHolder. The upload function returns a result object containing a mediaId, with the overall design adhering to a layered architecture and the dependency inversion principle.
+This code implements a REST controller for WeChat Mini Program media file upload and download. The core class WxMaMediaController operates media services through the WxMaService interface, relies on CommonsMultipartResolver for file upload processing, and uses WxMaConfigHolder to manage thread-local variables. The upload method converts temporary files into WeChat media IDs, while the download method retrieves files based on media IDs. The class diagram illustrates the invocation relationships between the controller and service layers, as well as the key data transfer object WxMediaUploadResult.
 
 
 ### Internal Method Call Graph
@@ -81,16 +81,15 @@ This code describes a WeChat Mini Program media file controller, primarily provi
 ```mermaid
 graph TD
     A["WxMaMediaController"]
-    B["Constructor: Inject wxMaService"]
-    C["POST /upload"]
-    D["GET /download/{mediaId}"]
+    B["Constructor Injection: WxMaService wxMaService"]
+    C["Upload API: uploadMedia"]
+    D["Download API: getMedia"]
     E["Validate appid: wxMaService.switchover"]
-    F["Create temp dir: Files.createTempDir"]
-    G["File transfer: file.transferTo"]
-    H["Upload media: wxMaService.getMediaService().uploadMedia"]
+    F["Create temp file: Files.createTempDir"]
+    G["Upload file: wxMaService.getMediaService().uploadMedia"]
+    H["Download file: wxMaService.getMediaService().getMedia"]
     I["Clear ThreadLocal: WxMaConfigHolder.remove"]
-    J["Download media: wxMaService.getMediaService().getMedia"]
-    K["Exception handling: log.error"]
+    J["Exception handling: catch IOException"]
 
     A --> B
     A --> C
@@ -98,11 +97,10 @@ graph TD
     C --> E
     C --> F
     C --> G
-    C --> H
     C --> I
-    C --> K
+    C --> J
     D --> E
-    D --> J
+    D --> H
     D --> I
 ```
 
@@ -110,8 +108,8 @@ graph TD
 sequenceDiagram
     participant Client
     participant Controller as WxMaMediaController
-    participant Service as wxMaService
-    participant MediaService as MediaService
+    participant Service as WxMaService
+    participant MediaService
     participant ConfigHolder as WxMaConfigHolder
 
     Client->>Controller: POST /wx/media/{appid}/upload
@@ -121,7 +119,7 @@ sequenceDiagram
         Controller-->>Client: Throw IllegalArgumentException
     else Valid appid
         Controller->>Controller: Parse multipart request
-        loop For each uploaded file
+        loop For each upload file
             Controller->>Controller: Create temp file
             Controller->>MediaService: uploadMedia(type, file)
             MediaService-->>Controller: WxMediaUploadResult
@@ -143,20 +141,20 @@ sequenceDiagram
     end
 ```
 
-This flowchart illustrates the core logic of the WeChat media management controller, including two main endpoints for file upload and download. The upload process involves temporary file creation, multipart request handling, and media service invocation, while the download process retrieves files via media ID. Both operations include appid validation and ThreadLocal cleanup mechanisms, with exception handling implemented through logging. The sequence diagram details the interaction process between the client, controller, and service layers, particularly emphasizing branch handling logic under different conditions.
+This flowchart illustrates the core logic of the WeChat Material Management Controller, including two main interfaces for upload and download. The upload process involves appid validation, multi-file processing, temporary file creation, and media service invocation; the download process includes permission verification and media file retrieval. Both processes conclude by clearing ThreadLocal-stored configuration to ensure thread safety. The sequence diagram details the interaction sequence between the client and components, along with exception handling paths.
 
 ### Field List
 
 | Name  | Type  | Description |
 |-------|-------|------|
-| wxMaService | WxMaService | Private constant variables of WeChat Mini Program service instances. |
+| wxMaService | WxMaService | Private immutable member variables of WeChat Mini Program service instances. |
 
 ### Method List
 
 | Name  | Type  | Description |
 |-------|-------|------|
-| uploadMedia | List<String> | Java method for handling WeChat Mini Program file uploads, verifying the appid before parsing multi-file requests, uploading each file individually and returning a list of media_ids, and finally cleaning up ThreadLocal. |
-| getMedia | File | Java Method: Download media file via appid and mediaId, return the file after checking appid configuration, and finally clean up ThreadLocal. Prompt "Configuration not found" in case of exceptions. |
+| uploadMedia | List<String> | Upload media file interface: After verifying the appid, process multi-file uploads and return a list of media IDs. Clean up configurations and log errors in case of exceptions. |
+| getMedia | File | Java Method: Download WeChat Mini Program media files via appid and mediaId, verify the configuration, return the file, and finally clean up the ThreadLocal. |
 
 
 

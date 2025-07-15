@@ -10,9 +10,9 @@
 
 ## 先决条件
 - **JDK 版本:** 1.8 (根据 Maven 的 `<maven.compiler.source>` 和 `<maven.compiler.target>` 属性配置)
-- **构建工具版本:** Maven (根据 `pom.xml` 文件识别，但未明确指定 Maven 版本，建议使用与 Spring Boot 2.6.3 兼容的版本)
+- **构建工具版本:** Maven (根据 `pom.xml` 文件识别)
 - **网络连接中间件依赖:**
-  - Redis (通过 `jedis` 依赖引入，但未明确指定版本)
+  - Redis (通过 `jedis` 依赖推断，未明确指定版本，由 Spring Boot 父 POM 管理)
 
 ## 构建指南
 ### Maven 构建
@@ -23,21 +23,34 @@
     - 安装到本地仓库: `mvn install`
     - 部署项目: `mvn deploy`
 - 构建流程: 
-    - Maven 的构建流程主要包括清理、编译、测试、打包、验证、安装和部署等阶段。该项目使用了 Spring Boot 和 Docker 插件，因此构建时会生成可执行的 JAR 文件，并支持 Docker 镜像构建。
+    - Maven 的构建流程主要包括以下阶段：
+        1. **清理 (clean)**: 删除之前构建生成的文件
+        2. **编译 (compile)**: 编译项目源代码
+        3. **测试 (test)**: 运行单元测试
+        4. **打包 (package)**: 将编译后的代码打包成可分发的格式（如 JAR）
+        5. **验证 (verify)**: 对集成测试结果进行检查
+        6. **安装 (install)**: 将包安装到本地仓库
+        7. **部署 (deploy)**: 将最终的包复制到远程仓库
 - 打包目录: 
-    - 打包后的 JAR 文件位于 `target/` 目录下，文件名为 `${project.build.finalName}.jar`。
-    - Docker 构建所需的文件位于 `src/main/docker/` 目录下，构建后的镜像名称为 `${docker.image.prefix}/${project.artifactId}`。
+    - 打包后的 JAR 文件会生成在 `target/` 目录下
+    - 项目使用 Spring Boot Maven 插件，会生成可执行的 JAR 文件
+    - Docker 构建文件位于 `src/main/docker` 目录，打包时会包含在 Docker 镜像中
 
 ## 依赖管理
 ### 主要依赖
-- **Spring Boot Web**: `spring-boot-starter-web` - 提供Spring Boot Web开发支持（版本通过父POM继承）
-- **Spring Boot Thymeleaf**: `spring-boot-starter-thymeleaf` - 集成Thymeleaf模板引擎（版本通过父POM继承）
-- **微信小程序SDK**: `weixin-java-miniapp` - 微信小程序Java SDK（版本：4.7.0，通过属性`weixin-java-miniapp.version`管理）
-- **文件上传**: `commons-fileupload` - Apache Commons文件上传组件（版本：1.5）
-- **测试支持**: `spring-boot-starter-test` - Spring Boot测试模块（scope: test）
-- **配置处理**: `spring-boot-configuration-processor` - 配置元数据生成（optional: true）
-- **Lombok**: `lombok` - 简化Java代码开发（scope: provided）
-- **Redis客户端**: `jedis` - Redis Java客户端（版本通过父POM继承）
+- **Spring Boot 基础支持**:
+  - `spring-boot-starter-web` (Web 开发支持)
+  - `spring-boot-starter-thymeleaf` (模板引擎)
+  - `spring-boot-starter-test` (测试支持，scope: test)
+  - `spring-boot-configuration-processor` (配置处理，optional: true)
+- **微信小程序 SDK**:
+  - `weixin-java-miniapp` (版本: 4.7.0，通过属性 `${weixin-java-miniapp.version}` 管理)
+- **工具库**:
+  - `commons-fileupload` (文件上传，版本: 1.5)
+  - `lombok` (代码简化，scope: provided)
+  - `jedis` (Redis 客户端)
+- **Docker 支持**:
+  - `docker-maven-plugin` (版本: 1.0.0)
 
 ### 添加/修改依赖
 - **Maven:** 在 `pom.xml` 文件的 `<dependencies>` 标签中添加或修改 `<dependency>` 元素。例如：
@@ -51,7 +64,7 @@
 
 ### 依赖版本管理
 - **Maven (`<dependencyManagement>`):**  
-  该POM通过父POM（`spring-boot-starter-parent`）继承大部分依赖版本，局部版本通过`<properties>`标签集中管理（如`weixin-java-miniapp.version`）。若需自定义版本，可在`<dependencyManagement>`中覆盖父POM的版本声明。
+  该文件通过 `<parent>` 继承了 `spring-boot-starter-parent` 的依赖管理（版本 2.6.3），隐式管理了大部分 Spring Boot 相关依赖的版本。自定义依赖版本可通过 `<properties>` 定义（如 `${weixin-java-miniapp.version}`），或在 `<dependency>` 中直接指定 `version` 标签。
 
 
 
@@ -59,46 +72,50 @@
 
 ```text
 weixin-java-miniapp-demo/
-├── .editorconfig       # 编辑器配置规范（跨团队协作标准）
-├── .git/              # Git版本控制目录
-├── .github/           # GitHub平台配置目录
-│   └── FUNDING.yml    # GitHub赞助配置文件
-├── .gitignore         # Git忽略规则配置
-├── .travis.yml        # Travis CI持续集成配置
-├── commit.sh          # 提交脚本（推测为自动化脚本）
-├── pom.xml            # Maven项目配置文件
-├── README.md          # 项目说明文档
-└── src/               # 源代码目录
-    └── main/
-        ├── docker/    # Docker容器化配置
-        │   └── Dockerfile
-        ├── java/      # Java源代码
-        │   └── com/github/binarywang/demo/wx/miniapp/
-        │       ├── WxMaDemoApplication.java  # SpringBoot启动类
-        │       ├── config/                   # 微信小程序配置类
-        │       ├── controller/               # MVC控制器层
-        │       ├── error/                    # 错误处理模块
-        │       └── utils/                    # 工具类
-        └── resources/ # 资源文件
-            ├── application.yml.template      # 配置模板
-            ├── META-INF/                    # 元信息目录
-            ├── templates/                   # 模板文件
-            └── tmp.png                      # 临时图片资源
+├── .editorconfig        # 编辑器配置（跨IDE统一风格）
+├── .gitignore          # Git忽略规则
+├── README.md           # 项目说明文档
+├── .travis.yml         # CI/CD配置（Travis CI）
+├── pom.xml             # Maven项目配置文件
+├── commit.sh           # Git提交脚本（推测）
+├── src/
+│   └── main/
+│       ├── java/
+│       │   └── com/github/binarywang/demo/wx/miniapp/
+│       │       ├── WxMaDemoApplication.java  # SpringBoot启动类
+│       │       ├── controller/                # 微信小程序控制器层
+│       │       │   ├── WxMaMediaController.java   # 媒体处理
+│       │       │   ├── WxMaUserController.java    # 用户管理
+│       │       │   └── WxPortalController.java    # 消息入口
+│       │       ├── utils/                     # 工具类
+│       │       │   └── JsonUtils.java          # JSON处理工具
+│       │       ├── error/                     # 异常处理
+│       │       │   ├── ErrorController.java    # 错误控制器
+│       │       │   └── ErrorPageConfiguration.java # 错误页面配置
+│       │       └── config/                    # 微信配置
+│       │           ├── WxMaProperties.java     # 配置属性类
+│       │           └── WxMaConfiguration.java  # 配置初始化
+│       ├── resources/
+│       │   ├── application.yml.template       # 配置模板
+│       │   ├── templates/                     # 前端模板
+│       │   │   └── error.html                 # 错误页模板
+│       │   └── META-INF/                      # 元数据配置
+│       │       └── additional-spring-configuration-metadata.json # Spring配置元数据
+│       └── docker/
+│           └── Dockerfile                     # 容器化部署配置
+├── .git/                # Git版本控制目录
+└── .github/
+    └── FUNDING.yml      # GitHub赞助配置
 ```
 
-命名规约：
-- 采用标准Maven项目结构（src/main/java/resources）
-- 包名遵循Java反向域名规范（com.github.binarywang）
-- 配置文件使用.yml格式（SpringBoot标准）
+命名规约：采用标准Java包命名（com.github.组织名），目录使用小写中划线风格  
+分层结构：  
+- 核心分层：SpringBoot标准结构（main/java + main/resources）  
+- 业务分层：按微信功能模块划分（controller/config/utils）  
+- 特殊分层：独立error处理层和docker部署层  
 
-分层结构：
-1. 控制层：controller目录处理HTTP请求
-2. 配置层：config目录管理微信SDK配置
-3. 工具层：utils提供JSON转换等基础能力
-4. 错误处理：独立error目录统一管理异常
-
-扩展设计：
-1. 通过docker目录支持容器化部署
-2. 提供CI/CD配置文件（.travis.yml）
-3. 配置模板与元数据分离（application.yml.template + META-INF）
-4. 前端模板与后端分离（templates目录）
+扩展设计：  
+1. 通过config目录实现微信SDK配置解耦  
+2. 提供application.yml.template支持配置模板化  
+3. 包含完整的CI/CD支持（.travis.yml + Dockerfile）  
+4. 错误处理系统化（独立error目录+HTML模板）
