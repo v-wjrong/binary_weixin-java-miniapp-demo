@@ -1,9 +1,0 @@
-openapi: 3.0.0
-info:
-  title: binary/weixin-java-miniapp-demo
-  version: 1.0.0
-  description: binary/weixin-java-miniapp-demo
-servers:
-- url: http://localhost:8080
-  description: Local development server
-components: {}
