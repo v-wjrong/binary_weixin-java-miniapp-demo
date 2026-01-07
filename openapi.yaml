@@ -12,7 +12,7 @@ paths:
       tags:
       - WxMaMediaController
       summary: uploadMedia
-      description: ''
+      description: 该接口处理微信小程序媒体文件上传，支持多文件同时上传，返回media_id列表。
       operationId: weixin-java-miniapp-demo_com.github.binarywang.demo.wx.miniapp.controller.WxMaMediaController#uploadMedia
       parameters:
       - in: path
@@ -36,7 +36,7 @@ paths:
       tags:
       - WxMaMediaController
       summary: getMedia
-      description: ''
+      description: 该接口用于下载微信媒体文件。通过appid切换配置，获取指定mediaId的媒体文件，处理完成后清理线程本地变量。若appid配置不存在则抛出异常。
       operationId: weixin-java-miniapp-demo_com.github.binarywang.demo.wx.miniapp.controller.WxMaMediaController#getMedia
       parameters:
       - in: path
@@ -64,7 +64,7 @@ paths:
       tags:
       - WxMaUserController
       summary: login
-      description: ''
+      description: 该接口处理微信小程序登录请求，通过appid和code获取用户会话信息。首先校验code是否为空，然后切换到对应的微信配置，调用服务获取sessionKey和openid并记录日志，最后返回JSON格式的会话信息或错误信息，执行完毕后清理线程本地变量。
       operationId: weixin-java-miniapp-demo_com.github.binarywang.demo.wx.miniapp.controller.WxMaUserController#login
       parameters:
       - in: path
@@ -92,7 +92,7 @@ paths:
       tags:
       - WxMaUserController
       summary: info
-      description: ''
+      description: 该接口用于获取微信小程序用户信息，通过appid切换配置并校验用户签名，最终返回解密后的用户数据。
       operationId: weixin-java-miniapp-demo_com.github.binarywang.demo.wx.miniapp.controller.WxMaUserController#info
       parameters:
       - in: path
@@ -144,7 +144,7 @@ paths:
       tags:
       - WxMaUserController
       summary: phone
-      description: ''
+      description: 该接口用于获取用户手机号，通过校验用户信息并解密加密数据来实现。首先切换到指定appid配置，校验用户信息合法性，若校验失败则返回错误信息；校验成功后解密手机号相关信息并以JSON格式返回结果，最后清理线程本地变量。
       operationId: weixin-java-miniapp-demo_com.github.binarywang.demo.wx.miniapp.controller.WxMaUserController#phone
       parameters:
       - in: path
@@ -196,7 +196,7 @@ paths:
       tags:
       - WxPortalController
       summary: authGet
-      description: ''
+      description: 该接口用于处理微信服务器的GET认证请求，验证签名合法性并返回echostr或错误信息。
       operationId: weixin-java-miniapp-demo_com.github.binarywang.demo.wx.miniapp.controller.WxPortalController#authGet
       parameters:
       - in: path
@@ -241,7 +241,7 @@ paths:
       tags:
       - WxPortalController
       summary: post
-      description: ''
+      description: 该接口处理微信小程序消息推送，支持明文和AES加密两种传输方式，根据消息格式（JSON或XML）解析并路由处理，确保线程安全。
       operationId: weixin-java-miniapp-demo_com.github.binarywang.demo.wx.miniapp.controller.WxPortalController#post
       parameters:
       - in: path
@@ -299,7 +299,7 @@ paths:
       tags:
       - ErrorController
       summary: error404
-      description: ''
+      description: 该代码定义了一个处理404错误的GET请求映射方法，返回错误页面视图名称"error"。
       operationId: weixin-java-miniapp-demo_com.github.binarywang.demo.wx.miniapp.error.ErrorController#error404
       responses:
         '200':
@@ -314,7 +314,7 @@ paths:
       tags:
       - ErrorController
       summary: error500
-      description: ''
+      description: 该代码定义了一个处理HTTP GET请求的控制器方法，当访问路径"/500"时返回"error"字符串，用于处理服务器内部错误页面跳转。
       operationId: weixin-java-miniapp-demo_com.github.binarywang.demo.wx.miniapp.error.ErrorController#error500
       responses:
         '200':
