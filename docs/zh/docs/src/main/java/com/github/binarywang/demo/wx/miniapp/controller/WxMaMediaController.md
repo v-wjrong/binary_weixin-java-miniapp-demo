@@ -11,7 +11,7 @@
 
 # 说明
 
-该控制器提供微信小程序媒体文件的上传与下载功能。通过指定appid可切换至对应配置，支持上传临时图片素材并返回media_id列表，同时提供根据media_id下载临时素材的功能。接口实现中包含多文件处理、异常捕获及线程局部变量清理操作，确保服务稳定运行。
+该控制器提供微信小程序媒体文件的上传与下载功能。通过指定appid路由请求，支持上传临时图片素材并返回对应的media_id列表，同时提供根据mediaId下载临时素材的功能。上传时使用multipart格式接收文件，并借助CommonsMultipartResolver处理请求。每次操作完成后会清理线程本地变量以确保环境干净。若未找到对应appid配置则抛出异常提示。
 
 # 类列表 Class Summary
 
@@ -44,13 +44,12 @@ classDiagram
     class WxMaService {
         <<Interface>>
         +boolean switchover(String appid)
-        +WxMaConfigHolder getConfigHolder()
-        +WxMaMediaService getMediaService()
+        +WxMediaService getMediaService()
     }
 
-    class WxMaMediaService {
+    class WxMediaService {
         <<Interface>>
-        +WxMediaUploadResult uploadMedia(String mediaType, File file) throws WxErrorException
+        +WxMediaUploadResult uploadMedia(String type, File file) throws WxErrorException
         +File getMedia(String mediaId) throws WxErrorException
     }
 
@@ -59,11 +58,8 @@ classDiagram
         +String KefuMsgType.IMAGE
     }
 
-    class WxMediaUploadResult {
-        +String getMediaId()
-    }
-
     class WxMaConfigHolder {
+        <<Interface>>
         +void remove()
     }
 
@@ -81,57 +77,42 @@ classDiagram
         +void transferTo(File dest) throws IOException, IllegalStateException
     }
 
-    class Files {
-        +File createTempDir()
+    class File {
+        +File(File parent, String child)
+    }
+
+    class Lists {
+        <<Interface>>
+        +ArrayList~E~ newArrayList()
     }
 
     class HttpServletRequest {
     }
 
-    class File {
+    class WxErrorException {
     }
 
     class IOException {
     }
 
-    class WxErrorException {
+    class Logger {
+        +void info(String msg)
+        +void error(String msg, Throwable t)
     }
 
-    class List {
-    }
-
-    class Iterator {
-    }
-
-    class String {
-    }
-
-    // Dependencies
     WxMaMediaController --> WxMaService : 依赖
-    WxMaMediaController --> CommonsMultipartResolver : 创建并使用
-    WxMaMediaController --> MultipartHttpServletRequest : 强转并使用
-    WxMaMediaController --> MultipartFile : 获取文件内容
-    WxMaMediaController --> File : 操作本地文件
-    WxMaMediaController --> WxMediaUploadResult : 接收上传结果
-    WxMaMediaController --> WxMaConfigHolder : 清理配置
+    WxMaMediaController --> CommonsMultipartResolver : 使用
+    WxMaMediaController --> MultipartHttpServletRequest : 强转使用
+    WxMaMediaController --> MultipartFile : 获取文件
+    WxMaMediaController --> File : 创建临时文件
+    WxMaMediaController --> Lists : 创建列表
     WxMaMediaController --> WxMaConstants : 使用常量
-    WxMaMediaController --> Files : 创建临时目录
-    WxMaMediaController --> HttpServletRequest : 请求处理
-    WxMaMediaController --> IOException : 异常捕获
-    WxMaMediaController --> WxErrorException : 抛出异常
-    WxMaMediaController --> List : 返回列表
-    WxMaMediaController --> Iterator : 遍历文件名
-    WxMaMediaController --> String : 参数传递
-
-    WxMaService --> WxMaMediaService : 提供媒体服务
-    WxMaService --> WxMaConfigHolder : 切换配置
-
-    WxMaMediaService --> WxMediaUploadResult : 上传返回结果
-    WxMaMediaService --> File : 下载保存为文件
-    WxMaMediaService --> WxErrorException : 可能抛出异常
+    WxMaMediaController --> WxMaConfigHolder : 清理配置
+    WxMaMediaController --> Logger : 日志记录
+    WxMaService --> WxMediaService : 获取服务
 ```
 
-该类图展示了微信小程序媒体控制器 `WxMaMediaController` 的结构及其与其他关键组件的关系。它通过依赖注入使用了微信服务接口完成素材的上传与下载功能，并涉及多部件请求解析、文件操作及异常处理等核心逻辑模块。
+该类图展示了微信小程序媒体控制器 `WxMaMediaController` 的结构及其相关依赖关系。它通过 Spring 注解实现 REST 接口，负责处理临时素材的上传与下载逻辑，并依赖于微信服务接口完成核心操作。同时涉及多部件请求解析、文件操作及异常处理等辅助功能模块。
 
 
 ### 内部方法调用关系图
@@ -142,37 +123,34 @@ graph TD
     B["属性: WxMaService wxMaService"]
     C["uploadMedia方法"]
     D["getMedia方法"]
-    E["switchover校验appid"]
-    F["解析multipart请求"]
-    G["遍历上传文件"]
-    H["保存临时文件"]
-    I["调用微信接口上传"]
-    J["记录日志并收集media_id"]
-    K["异常处理"]
-    L["清理ThreadLocal"]
-    M["返回media_id列表"]
-    N["下载媒体文件"]
-    O["返回File对象"]
+    E["switchover切换appid"]
+    F["resolver.isMultipart判断是否为multipart请求"]
+    G["遍历上传文件并保存到临时目录"]
+    H["调用微信接口上传素材"]
+    I["记录日志与异常处理"]
+    J["返回media_id列表"]
+    K["下载临时素材文件"]
+    L["返回File对象"]
+    M["清理ThreadLocal"]
 
     A --> B
     A --> C
     A --> D
     C --> E
     C --> F
-    C --> G
+    F -- 是 --> G
     G --> H
     H --> I
     I --> J
-    I --> K
-    C --> L
+    F -- 否 --> M
     C --> M
     D --> E
-    D --> N
-    D --> L
-    D --> O
+    D --> K
+    K --> L
+    D --> M
 ```
 
-该流程图展示了微信小程序媒体控制器中两个核心接口的执行逻辑：上传与下载临时素材。流程包括参数校验、文件处理、调用微信服务及资源清理等关键步骤，清晰反映了请求处理的完整链路和异常处理机制。
+该流程图展示了微信小程序媒体控制器中两个主要接口的执行逻辑：一个是处理上传临时素材的 `uploadMedia` 方法，另一个是用于下载临时素材的 `getMedia` 方法。整个过程包括了请求前置校验、文件处理、调用微信服务以及资源清理等关键步骤。
 
 ### 字段列表 Field List
 
@@ -184,8 +162,8 @@ graph TD
 
 | 名称  | 类型  | 说明 |
 |-------|-------|------|
-| getMedia | File | 该接口用于下载微信媒体文件。通过appid切换配置，获取指定mediaId的媒体文件，处理完成后清理线程本地变量。若appid配置不存在则抛出异常。 |
-| uploadMedia | List<String> | 该接口处理微信小程序媒体文件上传，支持多文件同时上传，返回media_id列表。 |
+| uploadMedia | List<String> | 该接口处理微信小程序媒体文件上传，支持多文件同时上传，返回媒体ID列表。首先验证appid配置，检查请求是否包含文件，遍历并保存每个文件到临时目录，调用微信API上传图片获取media_id，最后清理线程本地变量。若无文件则返回空列表。 |
+| getMedia | File | 该接口用于下载微信媒体文件。通过appid和mediaId获取对应媒体文件，若appid配置不存在则抛出异常，成功获取后清理线程本地变量并返回文件。 |
 
 
 

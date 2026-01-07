@@ -7,17 +7,17 @@
 | 代码路径 | weixin-java-miniapp-demo/src/main/java/com/github/binarywang/demo/wx/miniapp/controller/WxPortalController.java |
 | 包名 | com.github.binarywang.demo.wx.miniapp.controller |
 | 依赖项 | ['cn.binarywang.wx.miniapp.api.WxMaService', 'cn.binarywang.wx.miniapp.bean.WxMaMessage', 'cn.binarywang.wx.miniapp.constant.WxMaConstants', 'cn.binarywang.wx.miniapp.message.WxMaMessageRouter', 'cn.binarywang.wx.miniapp.util.WxMaConfigHolder', 'lombok.AllArgsConstructor', 'lombok.extern.slf4j.Slf4j', 'org.apache.commons.lang3.StringUtils', 'org.springframework.web.bind.annotation', 'java.util.Objects'] |
-| 概述说明 | 该控制器用于处理微信小程序的GET和POST请求，实现服务器验证与消息解密路由功能。 |
+| 概述说明 | 该控制器用于处理微信小程序的GET和POST请求，支持消息签名验证、解密及路由处理。GET方法用于服务器认证，POST方法用于接收并解析用户消息，支持明文和AES加密两种传输方式，并根据配置自动切换处理JSON或XML格式数据。 |
 
 # 说明
 
-该控制器用于处理微信小程序接入验证及消息接收。通过GET请求完成服务器有效性校验，返回echostr确认请求合法；POST请求接收并解析微信推送的消息，支持明文与AES加密两种传输方式，根据配置自动切换JSON或XML格式解析数据，并将消息路由至指定处理器。所有操作均会记录日志并清理线程上下文资源。
+该控制器用于处理微信小程序接入认证及消息推送。通过GET请求完成服务器有效性验证，返回echostr确认请求合法；POST请求接收并解析用户发送的消息，支持明文与AES加密两种方式，根据配置自动切换JSON或XML格式解析数据，并将消息路由至指定处理器。所有操作均校验appid合法性，确保安全性。
 
 # 类列表 Class Summary
 
 | 名称   | 类型  | 说明 |
 |-------|------|-------------|
-| WxPortalController | class | 该控制器用于处理微信小程序的GET和POST请求，实现服务器验证与消息路由。GET方法用于接入验证，POST方法用于接收并解析用户发送的消息（支持明文和AES加密），根据配置自动切换对应appid并处理消息，最终返回success或错误信息。使用日志记录请求详情，并在处理完毕后清理线程本地变量。 |
+| WxPortalController | class | 该控制器用于处理微信小程序的GET和POST请求，实现服务器验证与消息接收功能。GET方法用于校验签名并返回echostr，POST方法解析明文或AES加密的消息内容，并通过路由分发处理。支持JSON和XML格式数据，确保线程安全并清理上下文。 |
 
 
 
@@ -28,7 +28,7 @@
 | 访问范围 | @RestController;@AllArgsConstructor;@RequestMapping("/wx/portal/{appid}");@Slf4j;public |
 | 类型 | class |
 | 名称 | WxPortalController |
-| 说明 | 该控制器用于处理微信小程序的GET和POST请求，实现服务器验证与消息路由。GET方法用于接入验证，POST方法用于接收并解析用户发送的消息（支持明文和AES加密），根据配置自动切换对应appid并处理消息，最终返回success或错误信息。使用日志记录请求详情，并在处理完毕后清理线程本地变量。 |
+| 说明 | 该控制器用于处理微信小程序的GET和POST请求，实现服务器验证与消息接收功能。GET方法用于校验签名并返回echostr，POST方法解析明文或AES加密的消息内容，并通过路由分发处理。支持JSON和XML格式数据，确保线程安全并清理上下文。 |
 
 
 ### UML类图
@@ -78,71 +78,22 @@ classDiagram
         +remove() void
     }
 
-    class StringUtils {
-        <<Interface>>
-        +isAnyBlank(String... strings) boolean
-        +isBlank(String string) boolean
-    }
-
-    class Objects {
-        <<Interface>>
-        +equals(Object a, Object b) boolean
-    }
-
-    class RequestParam {
-        <<Interface>>
-    }
-
-    class PathVariable {
-        <<Interface>>
-    }
-
-    class RestController {
-        <<Interface>>
-    }
-
-    class RequestMapping {
-        <<Interface>>
-    }
-
-    class GetMapping {
-        <<Interface>>
-    }
-
-    class PostMapping {
-        <<Interface>>
-    }
-
-    class RequestBody {
-        <<Interface>>
-    }
-
-    class Slf4j {
-        <<Interface>>
-    }
-
-    class AllArgsConstructor {
-        <<Interface>>
-    }
-
     WxPortalController --> WxMaService : 依赖
     WxPortalController --> WxMaMessageRouter : 依赖
     WxPortalController --> WxMaMessage : 依赖
     WxPortalController --> WxMaConfigHolder : 依赖
-    WxPortalController --> StringUtils : 依赖
-    WxPortalController --> Objects : 依赖
-    WxPortalController --> WxMaConstants : 依赖
+    WxMaService --> WxMaConfig : 依赖
     WxMaMessage --> WxMaConfig : 依赖
 ```
 
-该类图展示了微信小程序门户控制器 `WxPortalController` 的结构及其与其他关键组件的交互关系。它通过依赖注入使用了服务接口 `WxMaService` 和消息路由接口 `WxMaMessageRouter`，并处理来自微信服务器的认证和消息推送请求。同时，涉及多个工具类和常量定义以支持签名验证、加解密及消息解析功能。
+该类图展示了微信小程序门户控制器 `WxPortalController` 的结构及其相关依赖。它通过接口调用处理 GET 和 POST 请求，完成签名校验、消息解析与路由转发等功能。同时依赖于多个微信小程序服务接口及配置类来实现完整的业务逻辑处理流程。
 
 
 ### 内部方法调用关系图
 
 ```mermaid
 graph TD
-    A["WxPortalController类"]
+    A["类WxPortalController"]
     B["属性: WxMaService wxMaService"]
     C["属性: WxMaMessageRouter wxMaMessageRouter"]
     D["GET方法: authGet(...)"]
@@ -155,42 +106,39 @@ graph TD
     A --> E
     A --> F
 
-    D --> G["日志记录接收参数"]
-    G --> H["校验参数是否完整"]
-    H --"否"--> I["抛出异常: 请求参数非法"]
-    H --"是"--> J["切换appid配置"]
-    J --"失败"--> K["抛出异常: 未找到对应appid配置"]
-    J --"成功"--> L["验证签名"]
-    L --"通过"--> M["清理ThreadLocal"]
-    M --> N["返回echostr"]
-    L --"不通过"--> O["清理ThreadLocal"]
-    O --> P["返回'非法请求'"]
+    D --> D1["日志记录请求参数"]
+    D1 --> D2["校验参数完整性"]
+    D2 --"参数缺失"--> D3["抛出异常: 请求参数非法"]
+    D2 --"参数完整"--> D4["切换appid配置"]
+    D4 --"切换失败"--> D5["抛出异常: 未找到对应appid配置"]
+    D4 --"切换成功"--> D6["验证签名"]
+    D6 --"验证通过"--> D7["清理ThreadLocal"]
+    D7 --> D8["返回echostr"]
+    D6 --"验证失败"--> D9["清理ThreadLocal"]
+    D9 --> D10["返回'非法请求'"]
 
-    E --> Q["日志记录请求信息"]
-    Q --> R["切换appid配置"]
-    R --"失败"--> S["抛出异常: 未找到对应appid配置"]
-    R --"成功"--> T["判断消息格式是否为JSON"]
-    T --"是"--> U["解析明文JSON消息"]
-    T --"否"--> V["解析明文XML消息"]
-    U --> W["调用route方法处理消息"]
-    V --> W
-    W --> X["清理ThreadLocal"]
-    X --> Y["返回'success'"]
+    E --> E1["日志记录请求信息"]
+    E1 --> E2["切换appid配置"]
+    E2 --"切换失败"--> E3["抛出异常: 未找到对应appid配置"]
+    E2 --"切换成功"--> E4["判断消息格式是否为JSON"]
+    E4 --> E5{"encryptType为空?"}
+    E5 --"是"--> E6["解析明文消息"]
+    E6 --> E7["调用route方法处理消息"]
+    E7 --> E8["清理ThreadLocal"]
+    E8 --> E9["返回'success'"]
+    E5 --"否"--> E10{"encryptType为'aes'?"}
+    E10 --"是"--> E11["解析AES加密消息"]
+    E11 --> E7
+    E10 --"否"--> E12["清理ThreadLocal"]
+    E12 --> E13["抛出异常: 不可识别的加密类型"]
 
-    T --"加密类型为空"--> Z["判断加密类型"]
-    Z --"aes"--> AA["解析AES加密JSON消息"]
-    Z --"aes"--> AB["解析AES加密XML消息"]
-    AA --> AC["调用route方法处理消息"]
-    AB --> AC
-    AC --> AD["清理ThreadLocal"]
-    AD --> AE["返回'success'"]
-    Z --"其他"--> AF["抛出异常: 不可识别的加密类型"]
-
-    F --> AG["调用wxMaMessageRouter.route(message)"]
-    AG --"异常"--> AH["记录错误日志"]
+    F --> F1["调用wxMaMessageRouter.route(message)"]
+    F1 --> F2{"是否发生异常?"}
+    F2 --"是"--> F3["记录错误日志"]
+    F2 --"否"--> F4["结束"]
 ```
 
-该流程图展示了微信公众号接入认证与消息接收处理的核心逻辑。控制器根据请求方式分为GET和POST两种处理路径，分别完成签名校验和消息解密解析，并通过路由分发至具体处理器，涵盖了明文和加密两种传输模式，同时注重了线程上下文的清理工作。
+该流程图展示了微信公众号接入控制器 `WxPortalController` 的主要逻辑。包括 GET 请求用于服务器认证和 POST 请求用于接收并处理用户消息，涵盖了参数校验、配置切换、消息解密与路由等关键步骤，并在各关键节点进行 ThreadLocal 清理以防止内存泄漏。
 
 ### 字段列表 Field List
 
@@ -203,9 +151,9 @@ graph TD
 
 | 名称  | 类型  | 说明 |
 |-------|-------|------|
-| route | void | 该方法用于路由微信小程序消息，通过wxMaMessageRouter处理传入的消息，若处理过程中发生异常则记录错误日志。 |
-| post | String | 该接口处理微信小程序消息推送，支持明文和AES加密两种传输方式，根据消息格式（JSON或XML）解析并路由处理，确保线程安全。 |
 | authGet | String | 该接口用于处理微信服务器的GET认证请求，验证签名合法性并返回echostr或错误信息。 |
+| post | String | 该接口处理微信小程序消息推送，支持明文和AES加密两种传输方式，根据消息格式（JSON或XML）解析并路由处理，确保线程安全并返回成功响应。 |
+| route | void | 该方法用于路由微信小程序消息，通过wxMaMessageRouter处理消息，若处理过程中发生异常则记录错误日志。 |
 
 
 

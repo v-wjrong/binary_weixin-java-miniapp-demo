@@ -6,42 +6,50 @@
 | Language | .java |
 | Code Path | weixin-java-miniapp-demo/src/main/java/com/github/binarywang/demo/wx/miniapp/config |
 | Package Name | docs.src.main.java.com.github.binarywang.demo.wx.miniapp.config |
-| Brief Description | This configuration class is used to initialize the WeChat Mini Program service. It completes the registration and management of multiple mini program accounts by reading configuration properties, builds a message router, and defines message processing logic for text, images, QR codes, and other message types. It supports sending customer service messages and subscription message notifications. |
+| Brief Description | This class is the configuration class for WeChat Mini Programs. It reads configuration properties with the prefix `wx.miniapp` through the `@ConfigurationProperties` annotation, supporting multiple sets of Mini Program configurations. It contains a static inner class `Config` that defines core parameters such as appid, secret, token, aesKey, and msgDataFormat. A List collection is used to manage multiple sets of configuration information, which is utilized to initialize the Mini Program service and register message routers to handle various messaging scenarios. |
 
 # Description
 
 ## Overview
 
-This module is responsible for the initialization of WeChat Mini Program services and message routing processing, supporting multi-account configuration management and handling logic for various message types. Core parameters such as AppID and Secret are loaded through property configuration classes, and message distribution and processing for text, image, QR code, and other message types are implemented by combining with a message router.
+This module is used to configure and initialize WeChat Mini Program services, supporting multi-configuration management. Through property binding and message routing mechanisms, it implements distribution processing for different message types.
 
-The interface specification includes configuration reading, message processor registration, and routing forwarding mechanisms, adopting streaming configuration and component injection to enhance extensibility. Key data structures include Config configuration items, WxMaProperties attribute mapping class, and message router instances. External dependencies mainly consist of the WeChat Mini Program Java SDK and related Spring Boot annotation support.
+The interface specification requires providing configuration items prefixed with "wx.miniapp" and supports multiple mini program instances through a List structure. Each instance must include core fields such as AppId and Secret.
 
-For example, the system can log user-sent text messages or generate parameterized QR codes to return to the client when a scan event is triggered.
+Key data structures include WxMaProperties and its nested Config class, which encapsulates parameters such as appid, secret, token, aesKey, and msgDataFormat.
+
+External dependencies mainly come from the weixin-java-miniapp library and related Spring Boot annotation components.
+
+For example: WxMaProperties uses @ConfigurationProperties to bind configurations; WxMaConfiguration utilizes WxMaService to build message routers.
 
 ## Main Business Scenarios
 
-The module integrates the complete chain from Mini Program access configuration to message processing, suitable for scenarios requiring integration with multiple WeChat Mini Programs and unified management of message responses. Its interaction pattern resembles an event bus, dispatching different types of messages to corresponding processors to execute specific business actions.
+The module supports the complete process from configuration loading to service startup, similar to factory pattern creating multiple mini program instances.
 
-Functionality covers basic configuration loading, message listening, customer service message pushing, and subscription notification delivery, with good integration capabilities. Typical applications such as enterprise-level multi-tenant Mini Program platforms can quickly build standard communication entry points through this module.
+The interaction mode implements event distribution based on message routers, connecting to functional modules such as logging, text replies, and image responses respectively.
 
-API types encompass configuration injection interfaces and message routing callback interfaces, supporting flexible extension of new message types and business processors. For example, when receiving an image message, automatically upload the material to cloud storage and return a processing result notification.
+Functionality covers typical application scenarios including message receiving and replying, material uploading, and customer service message pushing.
+
+Typical application modes include: user subscription notifications triggering message sending, scan code events returning QR code images, etc.
+
+API types cover configuration reading interfaces and message processing interfaces during service runtime, with integration cases including custom message handler registration and multimedia resource operations.
 
 
 ### Package Internal Structure View
 
 ```mermaid
 graph TD
-    config --> WxMaConfiguration.java
     config --> WxMaProperties.java
+    config --> WxMaConfiguration.java
 ```
 
-This flowchart shows the structure of the configuration module in the WeChat Mini Program Demo project, where the `config` package contains two configuration class files used to implement parameter settings and initialization configurations for WeChat Mini Program related functions.
+This flowchart shows the structure of the WeChat Mini Program configuration module. The `config` package contains two configuration class files: `WxMaProperties.java` for property configuration, and `WxMaConfiguration.java` for configuration initialization. Both belong to the configuration layer of the WeChat Mini Program Demo project.
 
 # File List
 
 | Name   | Type  | Description |
 |-------|------|-------------|
+| [WxMaProperties.java](WxMaProperties.md) | file | This class is used to configure WeChat Mini Program related parameters, including core configuration items such as app ID, secret key, token, encryption key, and message format. |
 | [WxMaConfiguration.java](WxMaConfiguration.md) | file | This configuration class is used to initialize WeChat Mini Program services and message routers, supporting multi-mini-program configurations, and defines various message processing logic, including logging, text replies, image sending, and QR code generation functions. |
-| [WxMaProperties.java](WxMaProperties.md) | file | This is a WeChat Mini Program configuration property class that contains configuration information for multiple mini programs. Each configuration item has parameters such as appid, secret, token, aesKey, and message format. |
 
 

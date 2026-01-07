@@ -7,11 +7,11 @@
 | Code Path | weixin-java-miniapp-demo/src/main/java/com/github/binarywang/demo/wx/miniapp/error/ErrorController.java |
 | Package Name | com.github.binarywang.demo.wx.miniapp.error |
 | Dependencies | ['org.springframework.stereotype.Controller', 'org.springframework.web.bind.annotation.GetMapping', 'org.springframework.web.bind.annotation.RequestMapping'] |
-| Brief Description | This is a Spring Boot error handling controller that maps 404 and 500 error page requests under the /error path, uniformly returning the error view. |
+| Brief Description | This is a Spring Boot error controller that handles 404 and 500 error page requests, returning the error view uniformly. |
 
 # Description
 
-This is a Spring Boot error handling controller class located under the /error path. The controller contains two GET request mapping methods: error404 handles 404 error page requests, and error500 handles 500 error page requests. Both methods return the same view name "error" for unified display of error page content.
+This is a Spring Boot error handling controller class located under the /error path. The controller contains two GET request mapping methods: error404 for handling 404 Not Found errors, and error500 for handling 500 Internal Server errors. Both methods return a view page named error, implementing unified error page display functionality.
 
 # Class Summary
 
@@ -40,16 +40,14 @@ classDiagram
         +String error500()
     }
 
-    <<Interface>> Controller
-    <<Interface>> RequestMapping
-    
-    note for ErrorController "// @Controller\n// @RequestMapping(\"/error\")"
-    
-    ErrorController -->|implements| Controller : depends on
-    ErrorController -->|maps to path /error| RequestMapping : depends on
+    <<Interface>> org.springframework.stereotype.Controller
+    <<Interface>> org.springframework.web.bind.annotation.RequestMapping
+
+    ErrorController --|> org.springframework.stereotype.Controller : implements
+    ErrorController --|> org.springframework.web.bind.annotation.RequestMapping : uses annotation
 ```
 
-This class diagram describes a controller class `ErrorController` in Spring Boot that is annotated to handle error page requests. Through the `@Controller` and `@RequestMapping` annotations, it indicates its role as a controller and the base routing path. It contains two GET request methods corresponding to 404 and 500 error pages respectively, both returning the "error" view name. This class depends on the annotation support provided by the Spring MVC framework to complete URL mapping and response handling.
+This class diagram shows the structure of the `ErrorController` controller class, which contains two methods for handling different error codes (404 and 500), and implements Spring MVC's routing mapping functionality through annotations. This class depends on the Controller and RequestMapping annotation interfaces provided by the Spring framework to fulfill its responsibilities.
 
 
 ### Internal Method Call Graph
@@ -71,7 +69,7 @@ graph TD
     E --> F
 ```
 
-This flowchart illustrates the structure and processing logic of the `ErrorController` class. The controller binds the path `/error` through the `@RequestMapping` annotation, and defines two GET request handling methods corresponding to HTTP status codes 404 and 500 respectively, both returning a view page named `error`.
+This flowchart shows the structure and request mapping logic of the `ErrorController` class. The controller defines the base path `/error` through the `@RequestMapping` annotation, and includes two GET request handling methods corresponding to 404 and 500 error pages respectively, both returning a view named `error`.
 
 ### Field List
 
@@ -82,8 +80,8 @@ This flowchart illustrates the structure and processing logic of the `ErrorContr
 
 | Name  | Type  | Description |
 |-------|-------|------|
-| error500 | String | This code defines a controller method that handles HTTP GET requests, returning the string "error" when accessing the path "/500", which is used for handling server internal error page redirection. |
 | error404 | String | This code defines a GET request mapping method for handling 404 errors, returning the error page view name "error". |
+| error500 | String | This code defines a method that handles HTTP GET requests. When the access path is "/500", it returns the string "error". This is typically used to handle server internal error response pages. |
 
 
 
