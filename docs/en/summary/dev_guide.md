@@ -10,9 +10,9 @@
 
 ## Prerequisites
 - **JDK Version:** 1.8
-- **Build Tool Version:** Maven (It is recommended to use a Maven version compatible with Spring Boot 2.6.3, typically Maven 3.6+)
+- **Build Tool Version:** Maven 3.2+
 - **Network-connected Middleware Dependencies:**
-  - Redis (inferred through the `jedis` client dependency)
+  - Redis (inferred via the `jedis` client dependency)
 
 ## Build Guide
 ### Maven Build
@@ -23,26 +23,29 @@
     - Install to local repository: `mvn install`
     - Deploy project: `mvn deploy`
 - Build Process: 
-    The Maven build process follows the standard lifecycle, mainly including phases such as clean, compile, test, package, install, and deploy. This project is a Spring Boot application that uses the `spring-boot-maven-plugin` plugin to support packaging into an executable JAR.
+    The Maven build process is based on lifecycle phases, mainly including `clean`, `compile`, `test`, `package`, `install`, and `deploy`. This project uses the Spring Boot plugin to build executable JAR files and configures a Docker plugin for image packaging.
 - Packaging Directory: 
-    The generated JAR file after packaging is located in the `target/` directory, with the filename `${project.build.finalName}.jar`, which defaults to `weixin-java-miniapp-demo-1.0.0-SNAPSHOT.jar`. Docker image-related resources are configured in the `src/main/docker` directory.
+    Build artifacts are located by default in the `target/` directory, primarily including:
+    - Compiled class files in `target/classes/`
+    - Packaged JAR file at `target/weixin-java-miniapp-demo-1.0.0-SNAPSHOT.jar`
+    - If using the Docker plugin, Docker image-related resources will be generated in `target/docker/` or a specified directory.
 
 ## Dependency Management
 ### Main Dependencies
-- **Spring Boot Web Starter**: Provides support for web application development, including embedded Tomcat and Spring MVC.
-- **Spring Boot Thymeleaf Starter**: Supports rendering HTML pages using the Thymeleaf template engine.
-- **weixin-java-miniapp**: WeChat Mini Program Java SDK used for interacting with WeChat APIs, version controlled by property `${weixin-java-miniapp.version}`, actually `4.7.0`.
-- **commons-fileupload**: Apache Commons file upload component, version `1.5`, used for handling file upload functionality.
-- **Spring Boot Test Starter**: Testing framework support provided by Spring Boot, scope is `test`.
-- **Spring Boot Configuration Processor**: Used for processing configuration metadata, marked as optional dependency.
-- **Lombok**: A utility library to simplify Java code, such as auto-generating getters/setters, scope is `provided`.
-- **Jedis**: Redis client library used for operating on Redis databases.
+- **Spring Boot Web Starter**: Provides foundational support for web application development, such as embedded Tomcat and Spring MVC.
+- **Spring Boot Thymeleaf Starter**: Supports view rendering using the Thymeleaf template engine.
+- **weixin-java-miniapp**: WeChat Mini Program Java SDK used for interacting with WeChat servers and handling messages, login logic, etc. Its version is controlled by property `${weixin-java-miniapp.version}`, set to `4.7.0`.
+- **commons-fileupload**: Apache Commons FileUpload component used for handling file upload functionality. Version is `1.5`.
+- **Spring Boot Test Starter**: Provides testing support including frameworks like JUnit and Mockito. Scope is `test`.
+- **Spring Boot Configuration Processor**: Used for processing configuration metadata to assist IDE auto-completion. Marked as an optional dependency.
+- **Lombok**: Utility library that reduces boilerplate code (e.g., getters/setters). Scope is `provided`, effective during compilation.
+- **Jedis**: Redis client library used for operating the Redis database.
 
 ### Adding/Modifying Dependencies
-- **Maven:** Add or modify `<dependency>` elements within the `<dependencies>` tag in the `pom.xml` file.
+- **Maven:** Add or modify `<dependency>` elements within the `<dependencies>` tag of the `pom.xml` file.
 
 ### Dependency Version Management
-- **Maven (`<dependencyManagement>`):** This project inherits from `spring-boot-starter-parent`, which already includes version management for most official Spring Boot dependencies. For dependencies not managed by Spring Boot (such as `weixin-java-miniapp`, `commons-fileupload`), versions are explicitly declared via `<version>` or controlled uniformly using variables defined in `<properties>`.
+- **Maven (`<dependencyManagement>`):** This project inherits from `spring-boot-starter-parent`, which already defines versions for many commonly used dependencies; thus, some dependencies do not require explicit version specification. For dependencies not managed by the parent POM (such as `weixin-java-miniapp` and `commons-fileupload`), version numbers must be manually specified. Alternatively, centralized control over dependency versions can also be achieved through declarations within `<dependencyManagement>`.
 
 ## Project Structure
 
@@ -52,35 +55,37 @@ weixin-java-miniapp-demo/
 ├── .github/                 # GitHub-related configurations (e.g., FUNDING.yml)
 ├── src/
 │   └── main/
-│       ├── java/            # Java source code directory
+│       ├── java/
 │       │   └── com/
 │       │       └── github/
 │       │           └── binarywang/
 │       │               └── demo/
 │       │                   └── wx/
-│       │                       └── miniapp/              # Main package for WeChat MiniApp demo project
+│       │                       └── miniapp/
 │       │                           ├── WxMaDemoApplication.java  # Spring Boot startup class
-│       │                           ├── controller/       # Controller layer (handles HTTP requests)
-│       │                           ├── utils/            # Utility classes (e.g., JsonUtils)
-│       │                           ├── error/            # Error handling module
-│       │                           └── config/           # Configuration classes (e.g., WeChat configuration, property binding)
-│       ├── resources/        # Resource files directory
-│       │   ├── application.yml.template  # Application configuration template file
-│       │   ├── tmp.png       # Sample image resource (assumed)
-│       │   ├── templates/    # Template pages directory (e.g., Thymeleaf)
-│       │   │   └── error.html  # Custom error page
-│       │   └── META-INF/     # Meta-information directory
-│       │       └── additional-spring-configuration-metadata.json  # Spring configuration metadata
-│       └── docker/           # Docker build-related files
-│           └── Dockerfile    # Docker image build script
-├── .editorconfig             # Editor formatting uniformity configuration
-├── .gitignore                # Git ignored files list
-├── README.md                 # Project documentation
+│       │                           ├── config/                   # Configuration class directory (Spring convention)
+│       │                           ├── controller/               # Controller layer (MVC structure)
+│       │                           ├── error/                    # Error handling module (assumed)
+│       │                           └── utils/                    # Utility class directory (common naming)
+│       ├── resources/
+│       │   ├── application.yml.template  # Configuration template file (commonly used in Spring Boot)
+│       │   ├── tmp.png                   # Sample image resource (assumed)
+│       │   ├── templates/                # Page template directory (used by template engines like Thymeleaf)
+│       │   │   └── error.html            # Custom error page
+│       │   └── META-INF/
+│       │       └── additional-spring-configuration-metadata.json  # Spring configuration metadata (for hints)
+│       └── docker/
+│           └── Dockerfile                # Docker build description file
+├── .editorconfig             # Editor encoding style uniform configuration
+├── .gitignore                # Git ignore rules configuration
 ├── .travis.yml               # Travis CI continuous integration configuration
-├── pom.xml                   # Maven Project Object Model file
-└── commit.sh                 # Commit helper script (assumed)
+├── README.md                 # Project documentation
+├── pom.xml                   # Maven Project Object Model file (core of Java projects)
+└── commit.sh                 # Commit script (presumably an auxiliary development tool)
 ```
 
-Naming Convention: Uses Maven standard directory structure; Java package names follow reverse domain name + functional module division  
-Layered Structure: Based on typical Spring Boot layers including controller, config, utils, and error modules, reflecting the principle of separation of concerns  
-Extensibility Design: Supports containerized deployment via the docker directory; supports view rendering through resources/templates; enhances Spring configuration capabilities via META-INF
+Naming Convention: Standard Maven project structure + fully qualified reverse domain name for Java packages (com.github.binarywang)
+
+Layered Structure: Typical Spring Boot project structure including common functional modules such as controller, config, utils, and error, conforming to lightweight web application layering
+
+Extended Design: Supports containerized deployment via the docker directory; supports view rendering through resources/templates; enhances configuration readability using META-INF; provides GitHub and CI integration support

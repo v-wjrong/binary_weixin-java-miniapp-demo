@@ -7,17 +7,17 @@
 | Code Path | weixin-java-miniapp-demo/src/main/java/com/github/binarywang/demo/wx/miniapp/config/WxMaProperties.java |
 | Package Name | com.github.binarywang.demo.wx.miniapp.config |
 | Dependencies | ['java.util.List', 'org.springframework.boot.context.properties.ConfigurationProperties', 'lombok.Data'] |
-| Brief Description | This class is used to configure WeChat Mini Program related parameters, including core configuration items such as app ID, secret key, token, encryption key, and message format. |
+| Brief Description | This class is used to configure WeChat Mini Program related parameters, including application ID, secret key, message server token, and encryption key information. |
 
 # Description
 
-This class is a property configuration class used to configure WeChat Mini Program related parameters. Through the @ConfigurationProperties annotation, it specifies the configuration prefix as "wx.miniapp" and supports multiple sets of configurations. It defines an embedded static inner class Config, which contains the core configuration items for WeChat Mini Programs: appid (application identifier), secret (application key), token (message server token), aesKey (message encryption key), and msgDataFormat (message data format type). The entire configuration structure manages multiple sets of mini program configuration information using a List collection approach.
+This class is a WeChat Mini Program configuration property class, used to store and manage the relevant configuration information of WeChat Mini Programs. The class contains a configuration list, each configuration item includes core parameters such as the mini program's appid, secret key, message server token, encryption key aesKey, and message data format, supporting multi-mini program configuration management.
 
 # Class Summary
 
 | Name   | Type  | Description |
 |-------|------|-------------|
-| WxMaProperties | class | This class is used to configure WeChat Mini Program related parameters, including core configuration items such as app ID, secret key, token, and message format. |
+| WxMaProperties | class | This class is used to configure WeChat Mini Program related parameters, including application ID, secret key, message server token, and encryption key information. |
 
 
 
@@ -28,7 +28,7 @@ This class is a property configuration class used to configure WeChat Mini Progr
 | Access Modifier | @Data;@ConfigurationProperties(prefix = "wx.miniapp");public |
 | Type | class |
 | Name | WxMaProperties |
-| Description | This class is used to configure WeChat Mini Program related parameters, including core configuration items such as app ID, secret key, token, and message format. |
+| Description | This class is used to configure WeChat Mini Program related parameters, including application ID, secret key, message server token, and encryption key information. |
 
 
 ### UML Class Diagram
@@ -62,7 +62,7 @@ classDiagram
     WxMaProperties --> "contains" Config : dependency
 ```
 
-This class diagram describes the structure of WeChat Mini Program configuration properties. The `WxMaProperties` class is used to encapsulate configuration information for multiple WeChat Mini Programs, each configuration item is represented by the inner static class `Config`, which includes key parameters such as appid and secret, and supports automatic binding through `@ConfigurationProperties`.
+This class diagram describes the structure of WeChat Mini Program configuration properties. The `WxMaProperties` class is used to encapsulate multiple `Config` configuration items, each `Config` corresponding to an authentication and message configuration information of a mini program, supporting batch injection via `@ConfigurationProperties`. The relationship between them is aggregation, indicating that `WxMaProperties` contains multiple `Config` instances.
 
 
 ### Internal Method Call Graph
@@ -70,38 +70,36 @@ This class diagram describes the structure of WeChat Mini Program configuration 
 ```mermaid
 graph TD
     A["Class WxMaProperties"]
-    B["Property: List<Config> configs"]
-    C["Annotation: @Data"]
-    D["Annotation: @ConfigurationProperties(prefix = 'wx.miniapp')"]
-    
+    B["Annotation: @Data"]
+    C["Annotation: @ConfigurationProperties(prefix = 'wx.miniapp')"]
+    D["Property: List<Config> configs"]
     E["Inner Class Config"]
-    F["Property: String appid"]
-    G["Property: String secret"]
-    H["Property: String token"]
-    I["Property: String aesKey"]
-    J["Property: String msgDataFormat"]
-    K["Annotation: @Data"]
+    F["Annotation: @Data"]
+    G["Property: String appid"]
+    H["Property: String secret"]
+    I["Property: String token"]
+    J["Property: String aesKey"]
+    K["Property: String msgDataFormat"]
 
+    A --> B
     A --> C
     A --> D
-    A --> B
     A --> E
-
-    E --> K
     E --> F
     E --> G
     E --> H
     E --> I
     E --> J
+    E --> K
 ```
 
-This flowchart illustrates the structure of the `WxMaProperties` configuration class, including its inner static class `Config` and its various property fields. The outer class is used to bind WeChat Mini Program related configurations, specifying the prefix as `wx.miniapp` through `@ConfigurationProperties`. The inner class encapsulates specific parameters for each Mini Program instance such as `appid`, `secret`, etc. The overall structure clearly reflects the configuration hierarchy and data mapping relationships.
+This flowchart illustrates the structure of the `WxMaProperties` configuration class, including its annotation configuration with binding prefix "wx.miniapp", the contained `List<Config>` property, and the various field definitions of the inner static class `Config`. The overall structure reflects the organizational approach for multiple configuration items in WeChat Mini Programs.
 
 ### Field List
 
 | Name  | Type  | Description |
 |-------|-------|------|
-| configs | List<Config> | This is a private configuration list variable used to store a collection of configuration objects of type Config. |
+| configs | List<Config> | This is a private configuration list field used to store a collection of configuration objects of type Config. |
 
 ### Method List
 

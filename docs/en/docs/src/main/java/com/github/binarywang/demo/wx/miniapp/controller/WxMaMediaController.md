@@ -11,13 +11,13 @@
 
 # Description
 
-This controller provides upload and download functionality for WeChat Mini Program media files. By specifying the appid to route requests, it supports uploading temporary image materials and returns the corresponding media_id list, while also providing the functionality to download temporary materials based on mediaId. Files are received in multipart format during upload, with CommonsMultipartResolver handling the requests. Thread local variables are cleaned up after each operation to ensure a clean environment. An exception is thrown if the corresponding appid configuration is not found.
+This controller provides upload and download functionality for WeChat Mini Program media files. By routing requests through the specified appid, it supports uploading temporary image materials and returning a list of media_ids, while also providing the functionality to download corresponding temporary materials based on mediaId. The interface implementation includes multi-file processing, exception capturing, and thread-local variable cleanup mechanisms to ensure stable service operation.
 
 # Class Summary
 
 | Name   | Type  | Description |
 |-------|------|-------------|
-| WxMaMediaController | class | This controller provides upload and download functions for WeChat Mini Program temporary media files, supports configuration switching via appid, the upload interface returns a list of media_ids, and the download interface retrieves files based on media_id. |
+| WxMaMediaController | class | This controller provides upload and download functionality for WeChat Mini Program media files, supports configuration switching via appid, the upload interface returns a list of media_id, and the download interface retrieves files based on media_id. |
 
 
 
@@ -28,7 +28,7 @@ This controller provides upload and download functionality for WeChat Mini Progr
 | Access Modifier | @RestController;@AllArgsConstructor;@Slf4j;@RequestMapping("/wx/media/{appid}");public |
 | Type | class |
 | Name | WxMaMediaController |
-| Description | This controller provides upload and download functions for WeChat Mini Program temporary media files, supports configuration switching via appid, the upload interface returns a list of media_ids, and the download interface retrieves files based on media_id. |
+| Description | This controller provides upload and download functionality for WeChat Mini Program media files, supports configuration switching via appid, the upload interface returns a list of media_id, and the download interface retrieves files based on media_id. |
 
 
 ### UML Class Diagram
@@ -44,22 +44,25 @@ classDiagram
     class WxMaService {
         <<Interface>>
         +boolean switchover(String appid)
-        +WxMediaService getMediaService()
+        +WxMaConfigHolder getConfigHolder()
+        +WxMaMediaService getMediaService()
     }
 
-    class WxMediaService {
+    class WxMaMediaService {
         <<Interface>>
-        +WxMediaUploadResult uploadMedia(String type, File file) throws WxErrorException
+        +WxMediaUploadResult uploadMedia(String mediaType, File file) throws WxErrorException
         +File getMedia(String mediaId) throws WxErrorException
+    }
+
+    class WxMediaUploadResult {
+        +String getMediaId()
     }
 
     class WxMaConstants {
         <<Interface>>
-        +String KefuMsgType.IMAGE
     }
 
     class WxMaConfigHolder {
-        <<Interface>>
         +void remove()
     }
 
@@ -78,41 +81,42 @@ classDiagram
     }
 
     class File {
-        +File(File parent, String child)
-    }
-
-    class Lists {
-        <<Interface>>
-        +ArrayList~E~ newArrayList()
+        +String toString()
     }
 
     class HttpServletRequest {
     }
 
-    class WxErrorException {
+    class Lists {
+        <<Utility>>
+        +ArrayList~T~ newArrayList()
     }
 
-    class IOException {
+    class Files {
+        <<Utility>>
+        +File createTempDir()
     }
 
     class Logger {
+        <<Interface>>
         +void info(String msg)
         +void error(String msg, Throwable t)
     }
 
     WxMaMediaController --> WxMaService : Dependency
-    WxMaMediaController --> CommonsMultipartResolver : Usage
-    WxMaMediaController --> MultipartHttpServletRequest : Cast and Use
-    WxMaMediaController --> MultipartFile : Get File
-    WxMaMediaController --> File : Create Temporary File
-    WxMaMediaController --> Lists : Create List
-    WxMaMediaController --> WxMaConstants : Use Constants
-    WxMaMediaController --> WxMaConfigHolder : Clean Configuration
-    WxMaMediaController --> Logger : Log Records
-    WxMaService --> WxMediaService : Get Service
+    WxMaMediaController --> CommonsMultipartResolver : Creates and uses
+    WxMaMediaController --> MultipartHttpServletRequest : Converts to use
+    WxMaMediaController --> MultipartFile : Retrieves file
+    WxMaMediaController --> File : File operations
+    WxMaMediaController --> WxMediaUploadResult : Receives result
+    WxMaMediaController --> WxMaConfigHolder : Clears config
+    WxMaMediaController --> Lists : Utility class invocation
+    WxMaMediaController --> Files : Creates temporary directory
+    WxMaMediaController --> Logger : Logs records
+    WxMaService --> WxMaMediaService : Provides media service
 ```
 
-This class diagram shows the structure of the WeChat Mini Program media controller `WxMaMediaController` and its related dependencies. It implements REST interfaces via Spring annotations, responsible for handling logic of temporary media upload and download, relying on WeChat service interfaces to perform core operations. It also involves auxiliary functional modules such as multipart request parsing, file operations, and exception handling.
+This class diagram shows the structure of the WeChat Mini Program media controller `WxMaMediaController` and its relationships with other key components. It uses dependency injection to utilize `WxMaService` for handling configuration switching and media upload/download functionalities across different appids. Meanwhile, it implements file uploading logic by integrating with Spring MVC's multipart request resolution mechanism, and leverages utility classes for auxiliary operations such as logging and temporary file creation.
 
 
 ### Internal Method Call Graph
@@ -120,49 +124,47 @@ This class diagram shows the structure of the WeChat Mini Program media controll
 ```mermaid
 graph TD
     A["WxMaMediaController class"]
-    B["Property: WxMaService wxMaService"]
-    C["uploadMedia method"]
-    D["getMedia method"]
-    E["switchover switch appid"]
-    F["resolver.isMultipart check if multipart request"]
-    G["Iterate through uploaded files and save to temporary directory"]
-    H["Call WeChat API to upload media"]
-    I["Log records and exception handling"]
-    J["Return media_id list"]
-    K["Download temporary media file"]
-    L["Return File object"]
-    M["Clean up ThreadLocal"]
-
+    B["Dependency: WxMaService wxMaService"]
+    C["Upload interface: uploadMedia"]
+    D["Download interface: getMedia"]
+    
     A --> B
     A --> C
     A --> D
-    C --> E
-    C --> F
-    F -- Yes --> G
-    G --> H
-    H --> I
-    I --> J
-    F -- No --> M
-    C --> M
-    D --> E
-    D --> K
-    K --> L
-    D --> M
+    
+    C --> C1["Check appid configuration"]
+    C1 --"Fail"--> C1_1["Throw IllegalArgumentException"]
+    C1 --"Success"--> C2["Create CommonsMultipartResolver"]
+    C2 --> C3["Determine if it is a multipart request"]
+    C3 --"No"--> C3_1["Clean up ThreadLocal and return empty list"]
+    C3 --"Yes"--> C4["Get file iterator"]
+    C4 --> C5["Iterate through files"]
+    C5 --> C6["Get current file"]
+    C6 --> C7["Save to temporary file"]
+    C7 --> C8["Call wxMaService to upload"]
+    C8 --> C9["Log and add mediaId"]
+    C9 --> C5
+    C5 --"No more files"--> C10["Clean up ThreadLocal and return result"]
+
+    D --> D1["Check appid configuration"]
+    D1 --"Fail"--> D1_1["Throw IllegalArgumentException"]
+    D1 --"Success"--> D2["Call wxMaService to download"]
+    D2 --> D3["Clean up ThreadLocal and return file"]
 ```
 
-This flowchart illustrates the execution logic of two main interfaces in the WeChat Mini Program media controller: one is the `uploadMedia` method for handling temporary media uploads, and the other is the `getMedia` method used for downloading temporary media. The entire process includes key steps such as request pre-validation, file processing, calling WeChat services, and resource cleanup.
+This flowchart illustrates the processing logic of two core interfaces in the WeChat Mini Program media controller: `uploadMedia` is used to upload temporary media by validating the appid, parsing multipart requests, and saving and uploading files one by one; `getMedia` downloads uploaded media based on mediaId. The entire process includes exception handling and resource cleanup operations, with a clear structure and well-defined responsibilities.
 
 ### Field List
 
 | Name  | Type  | Description |
 |-------|-------|------|
-| wxMaService | WxMaService | This is a private constant field declaration for a WeChat Mini Program service interface, used to provide WeChat Mini Program related function calls within the class. |
+| wxMaService | WxMaService | This is a private immutable instance variable declaration for a WeChat Mini Program service interface. |
 
 ### Method List
 
 | Name  | Type  | Description |
 |-------|-------|------|
-| uploadMedia | List<String> | This interface handles media file uploads for WeChat Mini Programs, supporting simultaneous upload of multiple files, and returns a list of media IDs. First, it validates the appid configuration and checks whether the request contains files. It then iterates through and saves each file to a temporary directory, calls the WeChat API to upload images and obtain media_id, and finally cleans up thread-local variables. If no files are present, it returns an empty list. |
+| uploadMedia | List<String> | This interface handles media file uploads for WeChat Mini Programs, supports simultaneous upload of multiple files, and returns a list of media IDs. |
 | getMedia | File | This interface is used to download WeChat media files. It retrieves the corresponding media file through appid and mediaId. If the appid configuration does not exist, an exception is thrown. After successful retrieval, it cleans up thread-local variables and returns the file. |
 
 
