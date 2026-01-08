@@ -11,7 +11,7 @@
 
 # Description
 
-This class is a WeChat Mini Program configuration property class, used to store and manage the relevant configuration information of WeChat Mini Programs. The class contains a configuration list, each configuration item includes core parameters such as the mini program's appid, secret key, message server token, encryption key aesKey, and message data format, supporting multi-mini program configuration management.
+This class is a property configuration class used to configure WeChat Mini Program related parameters. Through the @ConfigurationProperties annotation, it specifies the configuration prefix as "wx.miniapp" and supports multiple sets of configurations. It defines a Config static inner class internally, containing the core configuration items for WeChat Mini Program: appid (application identifier), secret (application key), token (message server token), aesKey (message encryption key), and msgDataFormat (message data format type). The entire configuration structure adopts a List collection approach to manage multiple sets of configuration information, facilitating unified configuration management for multiple Mini Program applications.
 
 # Class Summary
 
@@ -62,7 +62,7 @@ classDiagram
     WxMaProperties --> "contains" Config : dependency
 ```
 
-This class diagram describes the structure of WeChat Mini Program configuration properties. The `WxMaProperties` class is used to encapsulate multiple `Config` configuration items, each `Config` corresponding to an authentication and message configuration information of a mini program, supporting batch injection via `@ConfigurationProperties`. The relationship between them is aggregation, indicating that `WxMaProperties` contains multiple `Config` instances.
+This class diagram describes the structure of WeChat Mini Program configuration properties. The `WxMaProperties` class is used to encapsulate multiple `Config` configuration items, each `Config` corresponding to the basic information of a mini program (such as appid, secret, etc.). Through the `@ConfigurationProperties` annotation, Spring Boot can automatically bind properties prefixed with `wx.miniapp` in the configuration file to this class, achieving centralized management and reading of configurations.
 
 
 ### Internal Method Call Graph
@@ -70,36 +70,38 @@ This class diagram describes the structure of WeChat Mini Program configuration 
 ```mermaid
 graph TD
     A["Class WxMaProperties"]
-    B["Annotation: @Data"]
-    C["Annotation: @ConfigurationProperties(prefix = 'wx.miniapp')"]
-    D["Property: List<Config> configs"]
-    E["Inner Class Config"]
-    F["Annotation: @Data"]
-    G["Property: String appid"]
-    H["Property: String secret"]
-    I["Property: String token"]
-    J["Property: String aesKey"]
-    K["Property: String msgDataFormat"]
+    B["Property: List<Config> configs"]
+    C["Annotation: @Data"]
+    D["Annotation: @ConfigurationProperties(prefix = 'wx.miniapp')"]
+    
+    E["Static Inner Class Config"]
+    F["Property: String appid"]
+    G["Property: String secret"]
+    H["Property: String token"]
+    I["Property: String aesKey"]
+    J["Property: String msgDataFormat"]
+    K["Annotation: @Data"]
 
-    A --> B
     A --> C
     A --> D
+    A --> B
     A --> E
+
+    E --> K
     E --> F
     E --> G
     E --> H
     E --> I
     E --> J
-    E --> K
 ```
 
-This flowchart illustrates the structure of the `WxMaProperties` configuration class, including its annotation configuration with binding prefix "wx.miniapp", the contained `List<Config>` property, and the various field definitions of the inner static class `Config`. The overall structure reflects the organizational approach for multiple configuration items in WeChat Mini Programs.
+This flowchart illustrates the structure and relationships of the `WxMaProperties` configuration class and its static inner class `Config`. `WxMaProperties` binds configuration properties with the prefix `wx.miniapp` via the `@ConfigurationProperties` annotation, and contains a list of `Config` objects. Each `Config` object uses the `@Data` annotation to automatically generate Getter/Setter methods, which are used to store relevant configuration information for WeChat Mini Programs.
 
 ### Field List
 
 | Name  | Type  | Description |
 |-------|-------|------|
-| configs | List<Config> | This is a private configuration list field used to store a collection of configuration objects of type Config. |
+| configs | List<Config> | This is a private configuration list variable used to store a collection of configuration objects of type Config. |
 
 ### Method List
 

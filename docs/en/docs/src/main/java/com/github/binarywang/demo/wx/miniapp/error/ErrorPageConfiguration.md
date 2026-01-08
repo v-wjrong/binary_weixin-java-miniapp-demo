@@ -63,7 +63,7 @@ classDiagram
     ErrorPageRegistry --> ErrorPage : depends on
 ```
 
-This class diagram shows the structure of custom error page configuration in Spring Boot. `ErrorPageConfiguration` implements the `ErrorPageRegistrar` interface to register error page paths corresponding to specific HTTP status codes with the system. It adds `ErrorPage` objects through `ErrorPageRegistry`, where each `ErrorPage` binds an `HttpStatus` enum value and a redirect path. The overall design reflects extensibility and decoupling of the error handling mechanism.
+This class diagram shows a component `ErrorPageConfiguration` used for configuring error pages. It implements the `ErrorPageRegistrar` interface and depends on the classes `ErrorPageRegistry`, `ErrorPage`, and `HttpStatus` when registering error pages. Among them, `ErrorPage` is used to define the redirect path corresponding to a specific status code. The entire structure clearly expresses the relationships between classes and interfaces in the error handling mechanism.
 
 
 ### Internal Method Call Graph
@@ -75,8 +75,8 @@ graph TD
     C["Override method: registerErrorPages(ErrorPageRegistry errorPageRegistry)"]
     D["Create ErrorPage: HttpStatus.NOT_FOUND '/error/404'"]
     E["Create ErrorPage: HttpStatus.INTERNAL_SERVER_ERROR '/error/500'"]
-    F["Call method: errorPageRegistry.addErrorPages(...)"]
-    
+    F["Call method: errorPageRegistry.addErrorPages(...ErrorPage[])"]
+
     A --> B
     A --> C
     C --> D
@@ -84,7 +84,7 @@ graph TD
     C --> F
 ```
 
-This flowchart shows how the `ErrorPageConfiguration` class implements the `ErrorPageRegistrar` interface and registers custom error page paths for HTTP 404 and 500 status codes in the `registerErrorPages` method. The configuration is applied to the system by calling the `addErrorPages` method.
+This flowchart shows how the `ErrorPageConfiguration` class implements the `ErrorPageRegistrar` interface and registers custom 404 and 500 error pages through the `registerErrorPages` method. The process includes instantiating two `ErrorPage` objects and adding them to the `errorPageRegistry`, thereby completing the error page configuration.
 
 ### Field List
 
@@ -95,7 +95,7 @@ This flowchart shows how the `ErrorPageConfiguration` class implements the `Erro
 
 | Name  | Type  | Description |
 |-------|-------|------|
-| registerErrorPages | void | This code snippet demonstrates how to register custom error pages in a Spring Boot application. By implementing the ErrorPageRegistrar interface and overriding the registerErrorPages method, HTTP 404 and 500 errors are mapped to the /error/404 and /error/500 paths respectively, achieving a unified error handling mechanism. |
+| registerErrorPages | void | This code snippet demonstrates how to register custom error pages in a Spring Boot application. By implementing the ErrorPageRegistry interface, HTTP 404 and 500 errors are mapped to the /error/404 and /error/500 paths respectively, achieving a unified error handling mechanism. |
 
 
 

@@ -11,7 +11,7 @@
 
 # 说明
 
-该类是微信小程序配置属性类，用于存储和管理微信小程序的相关配置信息。类中包含一个配置列表，每个配置项包括小程序的appid、secret密钥、消息服务器token、加密密钥aesKey以及消息数据格式等核心参数，支持多小程序配置管理。
+该类是一个用于配置微信小程序相关参数的属性配置类。通过@ConfigurationProperties注解指定配置前缀为"wx.miniapp"，支持多套配置。内部定义了Config静态内部类，包含微信小程序的核心配置项：appid应用标识、secret应用密钥、token消息服务器令牌、aesKey消息加密密钥以及msgDataFormat消息数据格式类型。整个配置结构采用List集合方式管理多组配置信息，便于支持多个小程序应用的统一配置管理。
 
 # 类列表 Class Summary
 
@@ -62,7 +62,7 @@ classDiagram
     WxMaProperties --> "包含" Config : 依赖
 ```
 
-该类图描述了微信小程序配置属性的结构。`WxMaProperties` 类用于封装多个 `Config` 配置项，每个 `Config` 对应一个小程序的认证与消息配置信息，支持通过 `@ConfigurationProperties` 进行批量注入。两者之间为聚合关系，表示 `WxMaProperties` 包含多个 `Config` 实例。
+该类图描述了微信小程序配置属性的结构。`WxMaProperties` 类用于封装多个 `Config` 配置项，每个 `Config` 对应一个小程序的基本信息（如 appid、secret 等）。通过 `@ConfigurationProperties` 注解，Spring Boot 可以自动将配置文件中以 `wx.miniapp` 为前缀的属性绑定到该类中，实现配置的集中管理与读取。
 
 
 ### 内部方法调用关系图
@@ -70,36 +70,38 @@ classDiagram
 ```mermaid
 graph TD
     A["类WxMaProperties"]
-    B["注解: @Data"]
-    C["注解: @ConfigurationProperties(prefix = 'wx.miniapp')"]
-    D["属性: List<Config> configs"]
-    E["内部类Config"]
-    F["注解: @Data"]
-    G["属性: String appid"]
-    H["属性: String secret"]
-    I["属性: String token"]
-    J["属性: String aesKey"]
-    K["属性: String msgDataFormat"]
+    B["属性: List<Config> configs"]
+    C["注解: @Data"]
+    D["注解: @ConfigurationProperties(prefix = 'wx.miniapp')"]
+    
+    E["静态内部类Config"]
+    F["属性: String appid"]
+    G["属性: String secret"]
+    H["属性: String token"]
+    I["属性: String aesKey"]
+    J["属性: String msgDataFormat"]
+    K["注解: @Data"]
 
-    A --> B
     A --> C
     A --> D
+    A --> B
     A --> E
+
+    E --> K
     E --> F
     E --> G
     E --> H
     E --> I
     E --> J
-    E --> K
 ```
 
-该流程图展示了`WxMaProperties`配置类的结构，包括其绑定前缀为"wx.miniapp"的注解配置、包含的`List<Config>`属性以及内部静态类`Config`的各个字段定义。整体体现了微信小程序多配置项的组织方式。
+该流程图展示了`WxMaProperties`配置类及其静态内部类`Config`的结构关系。`WxMaProperties`通过`@ConfigurationProperties`注解绑定前缀为`wx.miniapp`的配置项，并包含一个`Config`对象列表，每个`Config`对象使用`@Data`注解自动生成Getter/Setter方法，用于存储微信小程序的相关配置信息。
 
 ### 字段列表 Field List
 
 | 名称  | 类型  | 说明 |
 |-------|-------|------|
-| configs | List<Config> | 这是一个私有配置列表字段，用于存储Config类型的配置对象集合。 |
+| configs | List<Config> | 这是一个私有配置列表变量，用于存储Config类型的配置对象集合。 |
 
 ### 方法列表
 

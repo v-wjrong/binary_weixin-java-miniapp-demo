@@ -6,25 +6,17 @@
 | 编码语言 | .java |
 | 代码路径 | weixin-java-miniapp-demo/src/main/java/com/github/binarywang/demo |
 | 包名 | docs.src.main.java.com.github.binarywang.demo |
-| 概述说明 | 该模块为微信小程序提供后端支持，涵盖媒体上传下载、用户登录、消息处理等功能。基于Spring Boot与WXJava SDK实现多小程序管理、接口路由及安全通信，支持JSON/XML解析、异常统一处理和配置动态加载，适用于企业级微信生态对接场景。 |
+| 概述说明 | 该模块为微信小程序提供后端核心功能，包括媒体上传下载、用户认证与消息路由。基于Spring Boot开发，支持多租户配置切换，接口遵循RESTful风格并采用JSON通信。关键组件有WxMaConfig、WxMaMessage等，依赖weixin-java-miniapp SDK。模块涵盖错误处理、配置管理及应用启动引导，具备高内聚低耦合特性，适用于微服务架构中独立部署使用。 |
 
 # 说明
 
 ## 概述
 
-该模块为微信小程序提供后端核心支撑，涵盖用户登录、媒体资源管理、消息接收与多实例路由等功能。通过集成WXJava SDK和Spring Boot框架，实现RESTful API风格接口及多租户配置管理。例如：使用WxMaService处理凭证校验，WxMaConfig支持多小程序切换。
-
-模块统一暴露HTTP接口，支持GET/POST请求，采用JSON/XML格式交互，并内置加解密与异常处理机制。关键数据结构包括MediaId、JSCode、Echostr、HttpStatus、ModelAndView等，配合ThreadLocal清理机制保障服务稳定性。
-
-外部依赖项主要有WXJava Miniapp SDK、Spring Boot Web模块、Jackson库及相关日志组件。例如：JsonUtils利用ObjectMapper实现对象到JSON的格式化转换。
+该模块为微信小程序提供完整的后端服务能力，涵盖用户认证、消息处理、媒体资源管理及多账户配置支持。接口遵循RESTful规范，以JSON格式通信并确保线程安全，所有控制器操作结束后清理ThreadLocal资源，类似ServletContext生命周期管理机制。关键数据结构包括WxMaConfig、WxMaJscode2SessionResult和WxMaMessage等。外部依赖主要为weixin-java-miniapp SDK、Spring Boot及其Web模块，未引入其他第三方库。例如：通过/media/upload上传图片获取media_id；使用/wxa/business/getuserphonenumber解密手机号；通过wx.miniapp.configs配置多个小程序实例。
 
 ## 主要业务场景
 
-模块覆盖三类核心业务流程：一是媒体上传下载（如图片获取MediaId），二是用户身份验证（如JSCode换取OpenId），三是消息订阅与事件分发（如文本消息自动回复）。系统通过Appid路由实现多小程序接入，支持明文/AES传输及多种消息类型解析。
-
-错误处理机制统一接管404/500等异常状态，结合ErrorController与ErrorPageRegistrar实现页面跳转或响应输出。例如访问非法路径时跳转至/error/404视图。
-
-典型应用场景包括第三方平台托管多个小程序、企业门户对接微信生态、以及需安全传递用户敏感信息的合规场景。API类型涵盖Controller层HTTP接口、SDK调用及配置注入，支持与Nginx、HTTPS网关等基础设施集成。整体架构类似事件总线模式，具备良好的扩展性和动态路由能力。
+模块支撑微信小程序的接入验证、身份管理、消息路由与多媒体交互四大核心流程。支持GET校验签名与POST接收明文/AES加密消息，并通过路由器分发处理，形成类似事件总线模式的交互架构。用户相关接口实现登录态维护与敏感信息解密，如通过code换取openid。媒体控制器适用于头像上传、语音下载等典型场景。同时支持统一错误页面跳转，提升异常情况下的用户体验一致性。API类型覆盖HTTP GET/POST请求，集成案例包含从微信回调到业务响应的闭环处理。例如：访问未定义接口返回“页面未找到”提示；通过WxMaMessageRouter添加文本处理器实现自动应答功能。
 
 
 ### 包内部结构视图
@@ -48,12 +40,12 @@ graph TD
     config --> WxMaConfiguration.java
 ```
 
-该流程图展示了微信小程序Java后台项目的模块结构，从根包`demo`逐层展开至各功能组件与配置类，清晰反映了代码组织架构和依赖关系。
+该流程图展示了微信小程序Java Demo项目的模块结构，从根目录demo开始逐层展开至各功能组件和配置文件，清晰反映了代码组织架构与依赖关系。
 
 # 文件列表
 
 | 名称   | 类型  | 说明 |
 |-------|------|-------------|
-| [wx](wx/_module.md) | package | 该模块为微信小程序提供后端支持，涵盖媒体上传下载、用户登录、消息处理等功能。基于Spring Boot与WXJava SDK实现多小程序管理、接口路由及安全通信，支持JSON/XML解析、异常统一处理和配置动态加载，适用于企业级微信生态对接场景。 |
+| [wx](wx/_module.md) | package | 该模块为微信小程序提供后端核心功能，包括媒体上传下载、用户认证与消息路由。基于Spring Boot开发，支持多租户配置切换，接口遵循RESTful风格并采用JSON通信。关键组件有WxMaConfig、WxMaMessage等，依赖weixin-java-miniapp SDK。模块涵盖错误处理、配置管理及应用启动引导，具备高内聚低耦合特性，适用于微服务架构中独立部署使用。 |
 
 
